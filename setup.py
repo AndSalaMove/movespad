@@ -26,7 +26,7 @@ setup(
     description="SPAD simulation for Move-X",
     author="Andrea Sala",
     author_email="andrea.sala@movesolutions.it",
-    url="https://github.com/movesolutions-hubing/movespad",
+    url="https://github.com/AndSalaMove/movespad",
     packages=find_packages("src"),
     package_dir={"": "src"},
     entry_points={'console_scripts': ['spad-run = movespad.main:base_run',
