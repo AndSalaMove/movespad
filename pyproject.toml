@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "movespad"
+version = "0.0.1"
+authors = [
+  { name="Andrea Sala", email="andrea.sala@movesolutions.it" },
+]
+
+description = "SPAD physical simulation"
+readme = "README.md"
+requires-python = ">=3.8"
+
+
+[project.urls]
+"Homepage" = "https://github.com/movesolutions-hubing/movespad"
+"Bug Tracker" = "https://github.com/movesolutions-hubing/movespad/issues"
