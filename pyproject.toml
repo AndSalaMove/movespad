@@ -15,5 +15,5 @@ requires-python = ">=3.8"
 
 
 [project.urls]
-"Homepage" = "https://github.com/movesolutions-hubing/movespad"
-"Bug Tracker" = "https://github.com/movesolutions-hubing/movespad/issues"
+"Homepage" = "https://github.com/AndSalaMove/movespad"
+"Bug Tracker" = "https://github.com/AndSalaMove/movespad/issues"
