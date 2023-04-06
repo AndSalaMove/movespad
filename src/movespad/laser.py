@@ -1,16 +1,16 @@
 """Create emission spectrum of the laser"""
 
 import numpy as np
-import matplotlib.pyplot as plt
 from movespad import params as pm
 
 
-def gauss_1d(x: np.ndarray, mu: float, sig: float) -> np.ndarray:
+def gauss_1d(arr: np.ndarray, mean: float, sig: float) -> np.ndarray:
     """Normalized gaussian"""
-    return 1 / (sig *np.sqrt(2*pm.PI)) * np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+    return 1 / (sig *np.sqrt(2*pm.PI)) * np.exp(-np.power(arr - mean, 2.) / (2 * np.power(sig, 2.)))
 
-def _base_laser_spectrum(times: np.ndarray, mu, sigma, n_reps=1) -> np.ndarray:
-    norm_curve = gauss_1d(times, mu, sigma) #mean at 1 ns
+
+def _base_laser_spectrum(times: np.ndarray, mean, sigma) -> np.ndarray:
+    norm_curve = gauss_1d(times, mean, sigma) #mean at 1 ns
 
     norm_curve = norm_curve * pm.PULSE_ENERGY
 
@@ -32,7 +32,7 @@ def full_laser_spectrum(times: np.ndarray, time_limit: float, init_offset: float
     while current_time <= time_limit:
         spec += _base_laser_spectrum(times, current_time, pm.SIGMA_LASER)
         current_time += pm.PULSE_DISTANCE
-    
+
     pdf = num / den * spec
 
     return pdf
@@ -42,7 +42,6 @@ def get_n_photons(times: np.ndarray, spectrum: np.ndarray, bin_width: int):
     """Return number of photons generated for each bin.
     Photons are generated according to a Poisson process"""
 
-    #TODO understand how to set this parameter
     delta_t = times[bin_width] - times[0]
 
     n_ph_mean = get_mean_n_ph(spectrum, delta_t, bin_width)
@@ -61,33 +60,5 @@ def get_mean_n_ph(spectrum, delta_t, bin_width) -> np.ndarray:
 
 
 def plot_spectrum(times, spectrum, ax, label):
-    
+    """Plot laser and bkg spectrum"""
     ax.plot(times, spectrum, label=label)
-
-
-
-if __name__ == '__main__':
-
-    import matplotlib.pyplot as plt
-
-    times = np.linspace(0, 5e-9, 5000) #1000 points / ns --> dt = 1 ps
-    spectrum = full_laser_spectrum(times)
-    bin_width = 50 #* 1ps = 50 ps
-
-    plt.figure()
-    plt.title("Laser power spectrum on the SPAD")
-    plt.xlabel("Time [s]")
-    plt.ylabel("Power")
-    plt.plot(times, spectrum)
-    plt.show()
-
-    area_tot = np.trapz(spectrum, times)
-    E_ph = pm.H * pm.C / pm.PHOTON_WAVEL
-
-    n_ph_tot = area_tot / E_ph
- 
-    print(f"Area totale (energia laser): {area_tot}")
-    print(f"Energia fotone: {E_ph}")
-    print(f"Numero fotoni arrivati: {n_ph_tot}")
-
-    n_ph, laser_timestamps = get_n_photons(times, spectrum)

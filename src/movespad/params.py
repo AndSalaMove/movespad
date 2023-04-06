@@ -3,7 +3,7 @@ import numpy as np
 # UNITS 
 # TIME: s
 # SPACE: m
-# POWER: W
+# POWER: W  
 
 PI = np.pi
 H = 6.62607015e-34 # in SI units 
@@ -25,10 +25,11 @@ PULSE_ENERGY = 6.2e-11
 PULSE_DISTANCE = 1.35e-6
 
 PIXEL_AREA = 3600e-12
-PDP = .25 #photon detection probability
-T_DEAD = 12.5e-9
+PDP = .9925 #photon detection probability
+T_DEAD = 12.5e-9  
 T_QUENCH = 1e-9
-T_THR = 7e-9 
+T_THR = 3e-9 
+AP_PROB = 0.01 #after pulsing integrated probability
 
 PHOTON_WAVEL = 405e-9
 E_PH = H * C / PHOTON_WAVEL # photon energy

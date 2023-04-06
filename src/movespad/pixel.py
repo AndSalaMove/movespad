@@ -13,7 +13,7 @@ class Timestamp(object):
         self.detected = np.random.uniform() < pdp
         self.alive = True
 
-        assert self.type in ['las', 'bkg', 'v']
+        assert self.type in ['las', 'bkg', 'ap', 'v']
 
     def __repr__(self) -> str:
         return f"{self.time:.2E} ({self.type})"
@@ -37,7 +37,7 @@ def plot_timestamps(ts, ax, z=0):
 
     for type in ['las', 'bkg']:
         x = [elem.time for elem in ts if elem.type==type]
-        ax.scatter(x, [z]*len(x), color='red' if type=='las' else 'navy', s=1 if type=='bkg' else 12)
+        ax.scatter(x, [z]*len(x), color='red' if type=='las' else 'navy', s=3 if type=='bkg' else 12)
 
 
 class Pixel(object):
@@ -46,10 +46,25 @@ class Pixel(object):
         self.area = pm.PIXEL_AREA
         self.pdp = pdp
 
-    def process_events(self, laser_times, bkg_times, t_dead, t_thr, t_quench, pdp=pm.PDP):
-        """
-        Apply the PDP and Tdead filter to the list of impinging photons
 
+    def generate_afterpulse(self, timestamps, i, t_dead, ap_prob=pm.AP_PROB):
+
+        if np.random.uniform() < ap_prob:
+            t_after = timestamps[i].time + np.random.exponential(scale=t_dead/6)
+
+            timestamps = np.append(timestamps, Timestamp(t_after, 'ap'))
+
+        return np.asarray(sorted(timestamps))
+
+
+    def process_events(self, laser_times, bkg_times, t_dead, t_thr, t_quench,
+                       pdp=pm.PDP, ap_prob=pm.AP_PROB):
+        """
+        Apply the following procedures to the list of impinging photons
+         - PDP (photon detection efficiency)
+         - Tdead filter
+         - Afterpulsing
+        
         :param laser_times: Array of floats
         :param bkg_times: Array of floats
         """
@@ -64,20 +79,24 @@ class Pixel(object):
 
         pix_tstamps = np.asarray([p for p in pix_tstamps if p.detected])
 
-        detected = []
+        absorbed = []
 
         for i, stamp in enumerate(pix_tstamps):
 
+            pix_tstamps = self.generate_afterpulse(pix_tstamps, i, t_dead)
+
             if stamp.alive:
-                detected.append(stamp)
+                absorbed.append(stamp)
 
                 dead_time = stamp.time + t_dead
                 target_time = stamp.time + t_thr
                 quench_time = stamp.time + t_quench
 
                 included_photons =  pix_tstamps[(pix_tstamps > Timestamp(stamp.time)) &
-                                                (pix_tstamps < Timestamp(dead_time))].tolist()
+                                                (pix_tstamps < Timestamp(dead_time))].tolist() 
 
+                #TODO implementare incremento lineare
+                # vedere se posso evitare il ciclo for e andare direttamente all'ultimo
                 for j, phot in enumerate(included_photons):
 
                     if phot.time < quench_time:
@@ -96,7 +115,7 @@ class Pixel(object):
                         break
                         #vai al prossimo fotone e riazzera il dead_time    
 
-        return detected   
+        return absorbed
 
 
     def plot_events_and_spectra(self, times, detected, laser_spec, bkg_spec):
