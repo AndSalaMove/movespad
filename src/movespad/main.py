@@ -1,10 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from movespad import laser, bkg, pixel, spad, params as pm
+from time import time
+from movespad import laser, bkg, spad, params as pm, pixel
+from movespad import spad
 
 
 def main():
 
+    start = time()
     offset = 2* pm.Z / pm.C
     time_step = 50e-12
     start, stop = 0, 4e-6
@@ -23,20 +26,13 @@ def main():
     print(f"Total laser photons: {sum(n_ph_las)}")
     print(f"Total bkg photons: {sum(n_ph_bkg)}")
 
-    pix = pixel.Pixel()
+    pix = pixel.Pixel(size = 2)
+    pix.create_and_split(t_laser, t_bkg, pm.PDP)
+    pix.process_events(pm.T_DEAD, pm.PDP, pm.AP_PROB)
 
-    det = pix.process_events(t_laser, t_bkg, pm.T_DEAD, pm.T_THR, pm.T_QUENCH)
-    det_times = [d.time for d in det]
-    breakpoint()
-    plt.scatter(t_laser, [0]*len(t_laser), color='red', s=5, label='laser')
-    plt.scatter(t_bkg, [0]*len(t_bkg), color='navy', s=5, label='bkg')
-    plt.scatter(det_times, [1]*len(det_times), color='green', s=5, label='detected')
-    plt.ylim(-3,3)
-    plt.legend()
-    plt.show()
-
-
-    pix.plot_events_and_spectra(times, det, las_spec, bkg_spec)
+    print(f"Total after deadtime filter: {[len(ts) for ts in pix.timestamps]}")
+    breakpoint()  
+    pix.plot_events(times, las_spec)
 
 
 if __name__ == '__main__':
