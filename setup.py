@@ -29,7 +29,7 @@ setup(
     url="https://github.com/AndSalaMove/movespad",
     packages=find_packages("src"),
     package_dir={"": "src"},
-    entry_points={'console_scripts': ['spad-run = movespad.main:base_run',
+    entry_points={'console_scripts': ['spad-run = movespad.main:main',
                                         ]},
     classifiers=[
         "Progeamming Language :: Python :: 3",
