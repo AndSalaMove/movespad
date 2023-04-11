@@ -20,18 +20,23 @@ THETA_E_DEG = 1.7
 THETA_E_RAD = THETA_E_DEG * PI / 180
 Z = .8 #m
 
-SIGMA_LASER = 4e-9 / 2.355 #250e-12 / 2.355
-PULSE_ENERGY = 4e-8 #6.2e-11
+SIGMA_LASER = 250e-12 / 2.355 # 4e-9 / 2.355
+PULSE_ENERGY = 6.2e-11 #4e-8  
 PULSE_DISTANCE = 1.35e-6
 
 PIXEL_AREA = 3600e-12
 PDP = .2 #photon detection probability
-T_DEAD = 1e-9
+T_DEAD = 7e-9
 
 AP_PROB = 0.01 #after pulsing integrated probability
 
 PHOTON_WAVEL = 405e-9
 E_PH = H * C / PHOTON_WAVEL # photon energy
 
-BKG_POWER = 7.5 # 10.5 W /m2, uscita da un conto fatto con SFdA
+BKG_POWER = 3 # 10.5 W /m2, uscita da un conto fatto con SFdA
 DCR = 6800 #Hz, Preso dal paper FBK
+
+XTALK_PROBS = {
+    'u': 3.5e-2, #"upper"
+    'ur':1.7e-2 # "upper right"
+}
