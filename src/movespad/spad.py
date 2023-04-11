@@ -15,7 +15,7 @@ class Timestamp(object):
         # print(f"Random number: {rnd:.3f}. PDP: {pdp} Detected: {self.detected}")
         self.alive = True
 
-        assert self.type in ['las', 'bkg', 'ap', 'v']
+        assert self.type in ['las', 'bkg', 'ap', 'v', 'xt']
 
     def __repr__(self) -> str:
         return f"{self.time:.2E} ({self.type})"
@@ -37,35 +37,34 @@ def generate_timestamps(time_array, type, pdp):
     return [Timestamp(val, type, pdp) for val in time_array]
 
 
-
 def plot_timestamps(ts, ax, z=0):
-
+    """Simple timestamp scatterplot."""
     for type in ['las', 'bkg']:
         x = [elem.time for elem in ts if elem.type==type]
         ax.scatter(x, [z]*len(x), color='red' if type=='las' else 'navy', s=3 if type=='bkg' else 12)
 
 
+def generate_afterpulse(timestamps, i, t_dead, ap_prob=pm.AP_PROB):
+    """Generate an afterpulsing photon with a given
+    probability and exponential distribution."""
+    if np.random.uniform() < ap_prob:
+        t_after = timestamps[i].time + np.random.exponential(scale=t_dead/6)
+        timestamps = np.append(timestamps, Timestamp(t_after, 'ap'))
+    return np.asarray(sorted(timestamps))
+
+
 class Spad(object):
 
-    def __init__(self, pdp=pm.PDP) -> None:
-        self.area = pm.PIXEL_AREA
+    def __init__(self, pos: tuple, pdp=pm.PDP) -> None:
         self.pdp = pdp
+        self.timestamps = []
+        self.position = pos
 
 
-    def generate_afterpulse(self, timestamps, i, t_dead, ap_prob=pm.AP_PROB):
-
-        if np.random.uniform() < ap_prob:
-            t_after = timestamps[i].time + np.random.exponential(scale=t_dead/6)
-
-            timestamps = np.append(timestamps, Timestamp(t_after, 'ap'))
-
-        return np.asarray(sorted(timestamps))
-
-
-    def process_events(self, pix_tstamps, t_dead, pdp=pm.PDP, ap_prob=pm.AP_PROB):
+    @staticmethod
+    def process_events(pix_tstamps, t_dead, ap_prob=pm.AP_PROB):
         """
         Apply the following procedures to the list of impinging photons
-         - PDP (photon detection efficiency)
          - Tdead filter
          - Afterpulsing
         
@@ -76,7 +75,7 @@ class Spad(object):
         absorbed = []
         for i, stamp in enumerate(pix_tstamps):
 
-            pix_tstamps = self.generate_afterpulse(pix_tstamps, i, t_dead)
+            pix_tstamps = generate_afterpulse(pix_tstamps, i, t_dead, ap_prob)
 
             if stamp.alive:
                 absorbed.append(stamp)
