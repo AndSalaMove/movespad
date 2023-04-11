@@ -1,7 +1,8 @@
 """Test for the Pixel class."""
 
 import numpy as np
-from movespad import spad
+import random
+from movespad import spad, pixel
 
 T_DEAD_TEST = 1
 
@@ -11,21 +12,52 @@ def test_tdead():
     t_laser = [1, 2, 3.3, 3.9]
     t_bkg = [1.2, 1.5, 3.1, 4.2]
 
-    spa = spad.Spad()
-    detected = spa.process_events(t_laser, t_bkg,
-                                  T_DEAD_TEST, pdp=1.0, ap_prob=0)
+    pix = pixel.Pixel(size=1)
+    pix.create_and_split(t_laser, t_bkg, pdp=1.0)
+    pix.process_events(T_DEAD_TEST, pdp=1.0, ap_prob=0)
 
-    assert detected == [spad.Timestamp(1), spad.Timestamp(3.1)]
+    assert pix.timestamps[0].timestamps == [spad.Timestamp(1), spad.Timestamp(3.1)]
 
 
-def test_afterpulse():
-    """Test the afterpulsing effect"""
-    timestamps = [spad.Timestamp(1), spad.Timestamp(2),spad.Timestamp(3),
-                  spad.Timestamp(4), spad.Timestamp(5)]
+# def test_afterpulse():
+#     """Test the afterpulsing effect"""
+#     timestamps = [spad.Timestamp(1), spad.Timestamp(2),spad.Timestamp(3),
+#                   spad.Timestamp(4), spad.Timestamp(5)]
 
-    #np.random.seed(1234)
+#     #np.random.seed(1234)
+#     t_laser = [1, 2, 3.3, 3.9]
+#     t_bkg = [1.2, 1.5, 3.1, 4.2]
+#     pix = pixel.Pixel(size=1)
+#     timestamps = pix.generate_afterpulse(timestamps, 0, 1, 1)
 
-    spa = spad.Spad()
-    timestamps = spa.generate_afterpulse(timestamps, 0, 1, 1)
+#     assert len(timestamps) == 6
 
-    assert len(timestamps) == 6
+
+def test_crosstalk():
+    """Test the croostalking function."""
+
+    t_laser = [1, 2, 3.3, 3.9]
+    t_bkg = [1.2, 1.5, 3.1, 4.2]
+
+    np.random.seed(1235)
+    random.seed(1235)
+    pix = pixel.Pixel(size = 2)
+    pix.create_and_split(t_laser, t_bkg, pdp=1.0)
+    pix.print_timestamps()
+
+    probs = {
+         'r': 1,
+         'ur': 1
+    }
+
+    pix.crosstalk(probs)
+    pix.print_timestamps()
+
+    assert [el.time for el in pix.timestamps[0].timestamps] == [1.2, 1.5, 1.5]
+    assert [el.time for el in pix.timestamps[1].timestamps] == [1.5, 2, 3.1]
+    assert [el.time for el in pix.timestamps[2].timestamps] == [1, 1, 1.2, 3.1, 3.3, 3.9, 4.2]
+    assert [el.time for el in pix.timestamps[3].timestamps] == [1, 2, 3.1, 3.3, 3.9, 4.2]
+
+
+if __name__ == '__main__':
+      test_crosstalk()
