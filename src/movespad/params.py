@@ -1,42 +1,47 @@
 import numpy as np
 
-# UNITS 
+# UNITS
 # TIME: s
 # SPACE: m
-# POWER: W  
+# POWER: W
 
 PI = np.pi
-H = 6.62607015e-34 # in SI units 
+H = 6.62607015e-34  # in SI units
 C = 299792458      # in SI units
 
-FF = .99265
-TAU_OPT = .66
-RHO_TGT = .75
-F_LENS = .006
-D_LENS = .005
+FF = .98
+TAU_OPT = .9
+RHO_TGT = .2
+F_LENS = .020 #m
+D_LENS = .016 #m
 F_HASH = F_LENS / D_LENS
 
-THETA_E_DEG = 1.7
-THETA_E_RAD = THETA_E_DEG * PI / 180
-Z = .8 #m
+THETA_H = 1.5e-3 #rad
+THETA_V = 1.5e-3 #rad
+Z = 20  # m
 
-SIGMA_LASER = 250e-12 / 2.355 # 4e-9 / 2.355
-PULSE_ENERGY = 6.2e-11 #4e-8  
-PULSE_DISTANCE = 1.35e-6
+SIGMA_LASER = 4.5e-9 / 2.355  # 4e-9 / 2.355
+PULSE_POWER = 4.5
+PULSE_ENERGY = np.sqrt(2*PI)*SIGMA_LASER*PULSE_POWER
+PULSE_DISTANCE = 1.35e-6#2*Z/C
 
-PIXEL_AREA = 3600e-12
-PDP = .2 #photon detection probability
+PIXEL_SIZE = 3
+PIXEL_AREA = (10.17e-6*PIXEL_SIZE)**2
+PDP = .2  # photon detection probability
 T_DEAD = 7e-9
 
-AP_PROB = 0.01 #after pulsing integrated probability
+AP_PROB = 0.014  # afterpulsing integrated probability
 
 PHOTON_WAVEL = 405e-9
-E_PH = H * C / PHOTON_WAVEL # photon energy
+E_PH = H * C / PHOTON_WAVEL  # photon energy
 
-BKG_POWER = 3 # 10.5 W /m2, uscita da un conto fatto con SFdA
-DCR = 6800 #Hz, Preso dal paper FBK
+BKG_POWER = 0.2 * 10 * 1.17  # irradianza * larghezza filtro * klux
+DCR = 6800  # Hz, Preso dal paper FBK
+COINCIDENCE_THR = 5
 
 XTALK_PROBS = {
-    'u': 3.5e-2, #"upper"
-    'ur':1.7e-2 # "upper right"
+    'r': 3.5e-2 / 4,  # "upper"
+    'ur': 1.7e-2 / 4,  # "upper right"
 }
+
+N_IMP = 150
