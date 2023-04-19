@@ -10,7 +10,7 @@ def main():
 
     offset = 2* pm.Z / pm.C
     time_step = 100e-12
-    start, stop = 0, 1.35e-6 * pm.N_IMP
+    start, stop = 0, pm.PULSE_DISTANCE * pm.N_IMP
     n_steps = int((stop-start)/time_step)
     times = np.linspace(start, stop, n_steps)
     bw = 1 #points --> 50 ps
@@ -18,8 +18,11 @@ def main():
     print("Creating bkg events...")
     bkg_spec = bkg.bkg_spectrum(times)
     print("Creating laser events...")
-    las_spec, n_pulses = laser.full_laser_spectrum(times, stop, init_offset=offset)
-    v_lines = [i*pm.PULSE_DISTANCE for i in range(n_pulses)]
+    las_spec = laser.full_laser_spectrum(init_offset=offset,
+                                         time_step=time_step,
+                                         n_imps=pm.N_IMP)
+    breakpoint()
+    v_lines = [i*pm.PULSE_DISTANCE for i in range(pm.N_IMP)]
 
     print("Extracting number of photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)

@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from movespad import params as pm
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 
 def gauss_1d(arr: np.ndarray, mean: float, sig: float) -> np.ndarray:
@@ -12,11 +12,11 @@ def gauss_1d(arr: np.ndarray, mean: float, sig: float) -> np.ndarray:
 
 
 def _base_laser_spectrum(times: np.ndarray, mean, sigma) -> np.ndarray:
+    """Generate single gaussian"""
     return gauss_1d(times, mean, sigma) * pm.PULSE_ENERGY
  
 
-
-def full_laser_spectrum(times: np.ndarray, time_limit: float, init_offset: float):
+def full_laser_spectrum(init_offset, time_step, n_imps):
     """
     Returns the normalized power spectrum of the laser.
     See Eq. 9 on the FBK paper
@@ -26,24 +26,20 @@ def full_laser_spectrum(times: np.ndarray, time_limit: float, init_offset: float
     num = pm.TAU_OPT * pm.RHO_TGT * pm.FF * pm.PIXEL_AREA
     den = pm.PI * pm.F_HASH**2 * np.tan(0.5 * pm.THETA_H)* np.tan(0.5 * pm.THETA_V) * (pm.D_LENS**2 + 4*pm.Z**2)
 
-    spec = np.zeros_like(times)
-    current_time = init_offset
-    n_pulses = 0
+    base_len =  int(pm.PULSE_DISTANCE / time_step)
 
-    n_tot = time_limit//pm.PULSE_DISTANCE
-    #TODO velocizzare questa funzione  
-    while current_time <= time_limit:
-        spec += _base_laser_spectrum(times, current_time, pm.SIGMA_LASER) +\
-                _base_laser_spectrum(times, current_time + pm.PULSE_DISTANCE, pm.SIGMA_LASER) +\
-                _base_laser_spectrum(times, current_time + 2*pm.PULSE_DISTANCE, pm.SIGMA_LASER)
-        current_time += 3*pm.PULSE_DISTANCE
-        n_pulses += 3
+    full_spec = []
 
-    # plt.plot(times, spec)
-    # plt.show()
-    pdf = num / den * spec
+    for i in trange(n_imps):
+        mean = init_offset + i * pm.PULSE_DISTANCE 
+        base_spec = np.linspace(i*pm.PULSE_DISTANCE, (i+1)*pm.PULSE_DISTANCE, base_len)
+        single_gauss = _base_laser_spectrum(base_spec, mean, pm.SIGMA_LASER)
 
-    return pdf, n_pulses
+        full_spec.extend(single_gauss)
+
+    pdf = np.asarray(full_spec) * num / den
+
+    return pdf
 
 
 def get_n_photons(times: np.ndarray, spectrum: np.ndarray, bin_width: int):

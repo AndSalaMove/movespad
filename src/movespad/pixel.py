@@ -161,13 +161,13 @@ class Pixel():
 
         sv = [s.time for s in survived]
 
-        for j in range(len(sv)):
-            plt.axvline(sv[j] - 1.5*pm.SIGMA_LASER, linestyle='dotted', color='firebrick')
-            plt.axvline(sv[j] + 1.5*pm.SIGMA_LASER, linestyle='dotted', color='firebrick')
+        # for j in range(len(sv)):
+        #     plt.axvline(sv[j] - 1.5*pm.SIGMA_LASER, linestyle='dotted', color='firebrick')
+        #     plt.axvline(sv[j] + 1.5*pm.SIGMA_LASER, linestyle='dotted', color='firebrick')
 
-        for i in range(len(centers)):
-            plt.axvline(left[i], linestyle='dotted', color='black')
-            plt.axvline(right[i], linestyle='dotted', color='black')
+        # for i in range(len(centers)):
+        #     plt.axvline(left[i], linestyle='dotted', color='black')
+        #     plt.axvline(right[i], linestyle='dotted', color='black')
 
         plt.plot(times, las_spec/np.max(las_spec), color='green', alpha=0.5)
         for i in range(len(self.timestamps)):
