@@ -131,7 +131,6 @@ class Pixel():
                 len([elem for elem in lst.timestamps if pht.time <= elem.time <= pht.time+window])
                     for lst in self.timestamps
             ]
-            #breakpoint()
             if sum(counts) >= thr:
                 if len(final)==0:
                     final.append(spad.Timestamp(pht.time, type='v'))

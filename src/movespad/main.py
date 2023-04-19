@@ -26,7 +26,7 @@ def main():
                         pm.D_LENS, pm.THETA_H, pm.THETA_V, pm.Z,
                         pm.PULSE_DISTANCE, pm.SIGMA_LASER, pm.PULSE_ENERGY)
 
-    breakpoint()
+
     print("Extracting number of laser photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
     print("Extracting number of bkg photons...")
@@ -94,7 +94,7 @@ def execute_main(
                         ff, pixel_area, f_lens, d_lens, theta_h, theta_v,
                         z, pulse_distance, las_sigma, pulse_energy)
 
-    breakpoint()
+
     print("Extracting number of laser photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
     print("Extracting number of bkg photons...")

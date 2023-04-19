@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#
+src/movespad.egg-info
 # C extensions
 *.so
 
