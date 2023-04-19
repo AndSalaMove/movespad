@@ -9,7 +9,7 @@ PI = np.pi
 H = 6.62607015e-34  # in SI units
 C = 299792458      # in SI units
 
-FF = .98
+FF = .99
 TAU_OPT = .9
 RHO_TGT = .2
 F_LENS = .020 #m
@@ -35,7 +35,7 @@ AP_PROB = 0.014  # afterpulsing integrated probability
 PHOTON_WAVEL = 405e-9
 E_PH = H * C / PHOTON_WAVEL  # photon energy
 
-BKG_POWER = 0.2 * 10 * 1.17  # irradianza * larghezza filtro * klux
+BKG_POWER = 0.2 * 10 * 1.20  # irradianza * larghezza filtro * klux
 DCR = 6800  # Hz, Preso dal paper FBK
 COINCIDENCE_THR = 5
 
@@ -44,4 +44,4 @@ XTALK_PROBS = {
     'ur': 1.7e-2 / 4,  # "upper right"
 }
 
-N_IMP = 150
+N_IMP = 30

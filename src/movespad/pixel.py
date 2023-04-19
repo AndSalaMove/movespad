@@ -151,24 +151,11 @@ class Pixel():
         return final
 
 
-    def plot_events(self, times, las_spec, survived=None, v_lines=None):
+    def plot_events(self, times, las_spec,
+                    survived=None):
 
         plt.figure()
         plt.title("Events on each SPAD")
-
-        centers = np.asarray([2*pm.Z/pm.C + n * pm.PULSE_DISTANCE for n in range(pm.N_IMP)])
-        left = centers - 1.5 * pm.SIGMA_LASER
-        right = centers + 1.5 * pm.SIGMA_LASER
-
-        sv = [s.time for s in survived]
-
-        # for j in range(len(sv)):
-        #     plt.axvline(sv[j] - 1.5*pm.SIGMA_LASER, linestyle='dotted', color='firebrick')
-        #     plt.axvline(sv[j] + 1.5*pm.SIGMA_LASER, linestyle='dotted', color='firebrick')
-
-        # for i in range(len(centers)):
-        #     plt.axvline(left[i], linestyle='dotted', color='black')
-        #     plt.axvline(right[i], linestyle='dotted', color='black')
 
         plt.plot(times, las_spec/np.max(las_spec), color='green', alpha=0.5)
         for i in range(len(self.timestamps)):
@@ -183,12 +170,7 @@ class Pixel():
             sv = [elem.time for elem in survived]
             plt.scatter(sv, [0]*len(sv), color='darkviolet', s=12)
 
-        if v_lines:
-            for line in v_lines:
-                plt.axvline(x = line, linestyle='dashed', alpha=0.5, color='lightsteelblue')
         plt.xlabel("Time")
-        plt.show()
-
 
     def print_timestamps(self,):
 

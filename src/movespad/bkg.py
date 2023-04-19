@@ -8,7 +8,8 @@ import movespad.laser as laser
 from tqdm import trange, tqdm
 
 
-def bkg_spectrum(times: np.ndarray) -> np.ndarray:
+def bkg_spectrum(times: np.ndarray, tau, rho_tgt, ff, pixel_area,
+                 z, f_lens, d_lens, bkg_power) -> np.ndarray:
     """Generate physical background power spectrum.
     It is a sum of 2 Poisson processes:
     + physical background
@@ -17,10 +18,10 @@ def bkg_spectrum(times: np.ndarray) -> np.ndarray:
 
     pdf = np.ones_like(times)
 
-    num = pm.TAU_OPT * pm.RHO_TGT * pm.FF * pm.PIXEL_AREA * pm.Z**2
-    den = pm.F_HASH**2 * (4 * pm.Z**2 + pm.D_LENS**2)
+    num = tau * rho_tgt * ff * pixel_area * z**2
+    den = (f_lens/d_lens)**2 * (4 * z**2 + d_lens**2)
 
-    pdf = num / den * pdf * pm.BKG_POWER
+    pdf = num / den * pdf * bkg_power
     return pdf
 
 

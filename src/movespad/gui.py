@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import os, pathlib
-import movespad
+from movespad import main
 
 
 def gui():
@@ -19,12 +19,13 @@ def gui():
          sg.T("SPADs per side", size=(20, 1), justification='right'), sg.I(key='pixel_size', default_text='3', size=(10,1))],
         [sg.T("Sigma (ns)", size=(20,1), justification='right'),     sg.I(key='laser_sigma', default_text='1.9108', size=(10, 1)),
          sg.T("Fill factor", size=(20,1), justification='right'), sg.I(key='fill_factor', default_text='0.99', size=(10,1))],
-        [sg.T("Pulse distance (us)", size=(20,1), justification='right'), sg.I(key='pulse_distance', default_text='1.35', size=(10,1)),
+        [sg.T("Pulse distance (us)", size=(20,1), justification='right'), sg.I(key='pulse_distance', default_text='1.5', size=(10,1)),
          sg.T("SPAD size (um)", size=(20,1), justification='right'), sg.I(key='spad_size', default_text="10.17", size=(10,1))],
         [sg.T("Beam divergence (mrad)", size=(20,1), justification="right"), sg.I(key='theta_h', size=(4,1), default_text="1.5"),
          sg.T("x") ,sg.I(key='theta_v', size=(4,1), default_text="1.5"), sg.T("PDP", justification='right', size=(18,1)),
-         sg.I(key='PDP', default_text="0.2", size=(10,1))],
+         sg.I(key='pdp', default_text="0.2", size=(10,1))],
         [sg.T("")],
+
         [sg.T("Optics", justification='center', size=(30,1), font=("Helvetica", 12, "bold")),
          sg.T("Other" , justification='center', size=(30,1), font=("Helvetica", 12, "bold"))],
 
@@ -34,8 +35,12 @@ def gui():
         sg.T("T dead (ns)", size=(20,1), justification='right'), sg.I(key="t_dead", default_text="7", size=(10,1))],
         [sg.T("Transmittance", size=(20,1), justification='right'),      sg.I(key='tau', default_text='0.90', size=(10,1)),
         sg.T("Coincidence number", size=(20,1), justification='right'), sg.I(key="coinc_thr", default_text="6", size=(10,1))],
-
-        [sg.T("", size=(30,5))],
+        [sg.T()],
+        [sg.T("Physical parameters", justification='center', size=(30,1), font=("Helvetica", 12, "bold")),],
+        [sg.T("Distance (m)", size=(20,1), justification='right'), sg.I(key="z", default_text="200", size=(10,1))],
+        [sg.T("Number of pulses", size=(20,1), justification='right'), sg.I(key='n_imp', default_text='30', size=(10,1))],
+        [sg.T("Target reflectivity", size=(20,1), justification='right'), sg.I(key='rho_tgt', default_text='0.2', size=(10,1))],
+        [sg.T("", size=(30,4))],
         [sg.Text("", size=(30)), sg.Submit(auto_size_button=True), sg.Cancel(auto_size_button=True)]
 
     ]
@@ -47,7 +52,7 @@ def gui():
     if event=='Cancel':
         window.close()
     elif event=='Submit':
-        movespad.main.execute_main()
+        main.execute_main(params=values)
 
 if __name__ == '__main__':
     gui()

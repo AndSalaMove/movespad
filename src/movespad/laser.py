@@ -11,29 +11,31 @@ def gauss_1d(arr: np.ndarray, mean: float, sig: float) -> np.ndarray:
     return 1 / (sig *np.sqrt(2*pm.PI)) * np.exp(-np.power(arr - mean, 2.) / (2 * np.power(sig, 2.)))
 
 
-def _base_laser_spectrum(times: np.ndarray, mean, sigma) -> np.ndarray:
+def _base_laser_spectrum(times: np.ndarray, mean, sigma, pulse_energy) -> np.ndarray:
     """Generate single gaussian"""
-    return gauss_1d(times, mean, sigma) * pm.PULSE_ENERGY
+    return gauss_1d(times, mean, sigma) * pulse_energy
  
 
-def full_laser_spectrum(init_offset, time_step, n_imps):
+def full_laser_spectrum(init_offset, time_step, n_imps, tau, rho_tgt,
+                        ff, pixel_area, f_lens, d_lens, theta_h, theta_v,
+                        z, pulse_distance, sigma_laser, pulse_energy):
     """
     Returns the normalized power spectrum of the laser.
     See Eq. 9 on the FBK paper
 
     """
 
-    num = pm.TAU_OPT * pm.RHO_TGT * pm.FF * pm.PIXEL_AREA
-    den = pm.PI * pm.F_HASH**2 * np.tan(0.5 * pm.THETA_H)* np.tan(0.5 * pm.THETA_V) * (pm.D_LENS**2 + 4*pm.Z**2)
+    num = tau * rho_tgt * ff * pixel_area
+    den = pm.PI * (f_lens/d_lens)**2 * np.tan(0.5 * theta_h)* np.tan(0.5 * theta_v) * (d_lens**2 + 4*z**2)
 
-    base_len =  int(pm.PULSE_DISTANCE / time_step)
+    base_len =  int(pulse_distance / time_step)
 
     full_spec = []
 
     for i in trange(n_imps, leave=False):
-        mean = init_offset + i * pm.PULSE_DISTANCE 
-        base_spec = np.linspace(i*pm.PULSE_DISTANCE, (i+1)*pm.PULSE_DISTANCE, base_len)
-        single_gauss = _base_laser_spectrum(base_spec, mean, pm.SIGMA_LASER)
+        mean = init_offset + i * pulse_distance
+        base_spec = np.linspace(i*pulse_distance, (i+1)*pulse_distance, base_len)
+        single_gauss = _base_laser_spectrum(base_spec, mean, sigma_laser, pulse_energy)
 
         full_spec.extend(single_gauss)
 
