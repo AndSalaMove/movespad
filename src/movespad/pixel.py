@@ -3,6 +3,7 @@ import random
 import matplotlib.pyplot as plt
 from itertools import product
 from movespad import spad, params as pm
+from tqdm import tqdm, trange
 
 
 class Pixel():
@@ -76,7 +77,7 @@ class Pixel():
         Input: List of timestamps after PDP
         Output: List of timestamps ready for t dead filtering"""
 
-        for s, spd in enumerate(self.timestamps):
+        for spd in tqdm(self.timestamps, leave=False):
             neigh = self.get_neighbours(spd.position)
             for photon in spd.timestamps:
 
@@ -109,7 +110,7 @@ class Pixel():
         """Apply t dead filter and afterpulsing
         to all SPADs in the pixel."""
         
-        for i in range(len(self.timestamps)):
+        for i in trange(len(self.timestamps), leave=False):
             self.timestamps[i].timestamps = spad.Spad.process_events(
                 self.timestamps[i].timestamps, t_dead, ap_prob)
 
@@ -124,7 +125,7 @@ class Pixel():
 
         all_photons = sorted(all_photons, key=lambda x: x.time)
 
-        for pht in all_photons:
+        for pht in tqdm(all_photons, leave=False):
 
             counts = [
                 len([elem for elem in lst.timestamps if pht.time <= elem.time <= pht.time+window])

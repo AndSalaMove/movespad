@@ -39,23 +39,3 @@ def get_n_photons_bkg(times, bkg_spectrum, bin_width):
     ])
 
     return n_ph, times[::bin_width][n_ph >= 1]
-
-
-
-if __name__ == '__main__':
-
-    time_step = 1e-12
-    left, right = 0, 5e-9
-    n_steps = int((right-left)/time_step)
-    print(n_steps)
-    times = np.linspace(left, 5e-9, n_steps)
-    bw = 50
-
-    bkg = bkg_spectrum(times, bin_width=bw)
-    las = laser.full_laser_spectrum(times)
-
-    n_ph_las, ts_laser = laser.get_n_photons(times, las, bw)
-    n_ph_bkg, ts_bkg = get_n_photons_bkg(times, bkg, bw)
-
-
-    breakpoint()

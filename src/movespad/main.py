@@ -21,15 +21,12 @@ def main():
     las_spec = laser.full_laser_spectrum(init_offset=offset,
                                          time_step=time_step,
                                          n_imps=pm.N_IMP)
-    breakpoint()
+
     v_lines = [i*pm.PULSE_DISTANCE for i in range(pm.N_IMP)]
-
-    print("Extracting number of photons...")
+    print("Extracting number of laser photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
+    print("Extracting number of bkg photons...")
     n_ph_bkg, t_bkg = bkg.get_n_photons_bkg(times, bkg_spec, bw)
-
-    # print(f"Total laser photons: {sum(n_ph_las)}")
-    # print(f"Total bkg photons: {sum(n_ph_bkg)}")
 
     pix = pixel.Pixel(size = pm.PIXEL_SIZE)
 
@@ -47,13 +44,13 @@ def main():
     print("Plotting results:")
     pix.plot_events(times, las_spec, survived, v_lines)
 
-    # hist_data = laser.get_hist_data(survived)
-
     hist_data = laser.get_hist_data([s.time for s in survived], pm.PULSE_DISTANCE)
-    print(survived)
-    print(hist_data)
 
-    plt.hist(hist_data, bins=[i*1e-9 for i in range(0,1350)])
+    fig, ax = plt.subplots()
+    ax.hist(hist_data, bins=[i*1e-9 for i in range(0,1350)])
+
+    secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C, lambda x : 2*x/pm.C))
+    secax.set_label("Distance [m]")
     plt.title("TOF histogram")
     plt.show()
 

@@ -30,7 +30,7 @@ def full_laser_spectrum(init_offset, time_step, n_imps):
 
     full_spec = []
 
-    for i in trange(n_imps):
+    for i in trange(n_imps, leave=False):
         mean = init_offset + i * pm.PULSE_DISTANCE 
         base_spec = np.linspace(i*pm.PULSE_DISTANCE, (i+1)*pm.PULSE_DISTANCE, base_len)
         single_gauss = _base_laser_spectrum(base_spec, mean, pm.SIGMA_LASER)

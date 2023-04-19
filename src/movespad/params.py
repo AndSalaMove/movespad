@@ -18,7 +18,7 @@ F_HASH = F_LENS / D_LENS
 
 THETA_H = 1.5e-3 #rad
 THETA_V = 1.5e-3 #rad
-Z = 200  # m
+Z = 37  # m
 
 SIGMA_LASER = 4.5e-9 / 2.355  # 4e-9 / 2.355
 PULSE_POWER = 4.5
