@@ -26,7 +26,7 @@ def get_matrix_size(
 
     focal = range_max / mag
     diam = focal / f_number
-   
+
     print(f"Focale: {focal} - Diameter: {diam}")
 
     rep_period = max(2*range_max*1.05 / pm.C, 8*sigma_laser*n_pix_y)
