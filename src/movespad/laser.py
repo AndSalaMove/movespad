@@ -70,8 +70,10 @@ def plot_spectrum(times, spectrum, ax, label):
     ax.plot(times, spectrum, label=label)
 
 
-def get_hist_data(times, clock):
+def get_hist_data(times: list, clock: float):
 
+    if len(times)==0:
+        return
     res = [times[0]%clock]
 
     for i, time in enumerate(times):

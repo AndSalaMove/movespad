@@ -39,7 +39,8 @@ def main():
     pix.crosstalk(pm.XTALK_PROBS)
     print("Applying t dead filter...")
     pix.t_dead_filter(pm.T_DEAD, pm.PDP, pm.AP_PROB)
-
+    print("Applying SPAD jitter...")
+    pix.spad_jitter(pm.SPAD_JITTER)
     print(f"Photon count: {[len(ts.timestamps) for ts in pix.timestamps]}")
     print(f"Laser count: {[len([elem for elem in ts.timestamps if elem.type=='las']) for ts in pix.timestamps]}")
 
@@ -75,7 +76,10 @@ def execute_main(
     t_dead, thr = float(params['t_dead'])*10**-9, int(params['coinc_thr'])
 
     n_imp, z = int(params['n_imp']), float(params['z'])
-    rho_tgt = float(params['rho_tgt'])
+    rho_tgt, rng_min = float(params['rho_tgt']), float(params['range_min'])
+
+    spad_j, tdc_j = float(params['spad_j'])*10**-12, float(params['tdc_j'])*10**-12
+    n_bit_tdc, n_bit_hist  = int(params['n_bit_tdc']), int(params['n_bit_hist'])
 
     pulse_energy = np.sqrt(2*pm.PI)*las_sigma*las_power
 
@@ -94,7 +98,6 @@ def execute_main(
                         ff, pixel_area, f_lens, d_lens, theta_h, theta_v,
                         z, pulse_distance, las_sigma, pulse_energy)
 
-
     print("Extracting number of laser photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
     print("Extracting number of bkg photons...")
@@ -111,15 +114,32 @@ def execute_main(
     print(f"Photon count: {[len(ts.timestamps) for ts in pix.timestamps]}")
     print(f"Laser count: {[len([elem for elem in ts.timestamps if elem.type=='las']) for ts in pix.timestamps]}")
 
+    print("Applying SPAD jitter...")
+    pix.spad_jitter(spad_j)
     print("Applying coincidence...")
     survived = pix.coincidence(thr=thr, window=3*las_sigma)
+
+    survived = pixel.Pixel.tdc_jitter(tdc_j, survived).tolist()
+    
+    print(f"{len(survived)} events found")
     print("Plotting results:")
     pix.plot_events(times, las_spec, survived)
-
+    if len(survived)==0:
+        plt.show()
+        return
+    
+    tot_n = 2**(n_bit_tdc)-1
+    count_limit = 2**(n_bit_hist)-1
+    t_min = 2*rng_min / pm.C
+    bins = np.linspace(t_min, pulse_distance, tot_n)
     hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance)
 
     fig, ax = plt.subplots()
-    ax.hist(hist_data, bins=[i*1e-9 for i in range(0,1350)])
+    counts, bins = np.histogram(hist_data, bins=bins)
+
+    counts = [min(count_limit, c) for c in counts]
+
+    ax.stairs(counts, bins)
 
     secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C, lambda x : 2*x/pm.C))
     secax.set_label("Distance [m]")

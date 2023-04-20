@@ -30,6 +30,9 @@ PIXEL_AREA = (10.17e-6*PIXEL_SIZE)**2
 PDP = .2  # photon detection probability
 T_DEAD = 7e-9
 
+SPAD_JITTER = 169e-9/2.355
+TDC_JITTER = 100e-9
+
 AP_PROB = 0.014  # afterpulsing integrated probability
 
 PHOTON_WAVEL = 405e-9

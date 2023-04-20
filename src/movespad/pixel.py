@@ -128,7 +128,7 @@ class Pixel():
         for pht in tqdm(all_photons, leave=False):
 
             counts = [
-                len([elem for elem in lst.timestamps if pht.time <= elem.time <= pht.time+window])
+                len([elem for elem in lst.timestamps if pht.time-window <= elem.time <= pht.time])
                     for lst in self.timestamps
             ]
             if sum(counts) >= thr:
@@ -148,7 +148,14 @@ class Pixel():
                 pass
 
         return final
+    
 
+    def spad_jitter(self, jit_sigma):
+
+        for i in trange(len(self.timestamps), leave=False):
+            self.timestamps[i].timestamps += np.random.normal(0, jit_sigma,
+                                                size=len(self.timestamps[i].timestamps))
+            
 
     def plot_events(self, times, las_spec,
                     survived=None):
@@ -171,7 +178,12 @@ class Pixel():
 
         plt.xlabel("Time")
 
+
     def print_timestamps(self,):
 
         for ts in self.timestamps:
             print(ts.timestamps)
+
+    @staticmethod
+    def tdc_jitter(tdc_sigma, surv):
+        return np.asarray(surv) + np.random.normal(0, tdc_sigma, size=(len(surv,)))

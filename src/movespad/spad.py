@@ -11,6 +11,7 @@ class Timestamp(object):
         self.time = time
         self.type = type
         rnd = np.random.uniform()
+        self.pdp = pdp
         self.detected = rnd < pdp
         # print(f"Random number: {rnd:.3f}. PDP: {pdp} Detected: {self.detected}")
         self.alive = True
@@ -28,6 +29,13 @@ class Timestamp(object):
     
     def __gt__(self, other):
         return self.time > other.time
+    
+    def __add__(self, other: float):
+        return Timestamp(
+            time=self.time + other,
+            type=self.type,
+            pdp = self.pdp
+        )
     
     def set_living(self, state: bool):
         self.alive = state
