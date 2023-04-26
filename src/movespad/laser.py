@@ -75,6 +75,7 @@ def get_hist_data(times: list, clock: float):
     if len(times)==0:
         return
     res = [times[0]%clock]
+    print(times[0], " added to hist")
 
     for i, time in enumerate(times):
         if i==0:
@@ -83,6 +84,7 @@ def get_hist_data(times: list, clock: float):
         if times[i]//clock == times[i-1]//clock:
             continue
         else:
+            print(f"{time} added to hist")
             res.append(time%clock)
 
     return res

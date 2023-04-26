@@ -133,10 +133,12 @@ def execute_main(
     t_min = 2*rng_min / pm.C
     bins = np.linspace(t_min, pulse_distance, tot_n)
     hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance)
-
+    print(len(hist_data))
     fig, ax = plt.subplots()
+    breakpoint()
     counts, bins = np.histogram(hist_data, bins=bins)
 
+    print(sum(counts))
     counts = [min(count_limit, c) for c in counts]
 
     ax.stairs(counts, bins)
