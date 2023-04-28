@@ -6,6 +6,7 @@ from tqdm import trange
 def fl(x: str):
     return float(x)
 
+
 def optimal_laser_power(params):
     """Simulate SPAD action to evaluate
     optimal laser power (6 hits out of 9)"""
@@ -47,6 +48,7 @@ def optimal_laser_power(params):
 
     return np.mean(hit_counts)
 
+
 def get_pre_output(params):
     """
     Compute average hit count, flash power per pixel,
@@ -62,14 +64,15 @@ def get_pre_output(params):
     scene_x = fl(params['range_max']) * np.tan(np.deg2rad(fl(params['fov_x'])) / 2)
     scene_y = fl(params['range_max']) * np.tan(np.deg2rad(fl(params['fov_y'])) / 2)
 
-    n_pix_x = np.ceil(scene_x / (fl(params['res_x'])/100))
-    n_pix_y = np.ceil(scene_y / (fl(params['res_y'])/100))
+    n_pix_x = int(np.ceil(scene_x / (fl(params['res_x'])/100)))
+    n_pix_y = int(np.ceil(scene_y / (fl(params['res_y'])/100)))
 
     pre_out['n_pix_x'], pre_out['n_pix_y'] = n_pix_x, n_pix_y
 
 
     # Power per pixel in case of flash
-    laser_sigma = fl(params['laser_sigma'])*1e-9
+    laser_sigma = fl(params['power_budget'])*1e-9
+        # assumendo uno scanning riga per riga
     pulse_distance = max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
     pb = fl(params['power_budget'])
     n_pixel = n_pix_x * n_pix_y

@@ -15,7 +15,7 @@ def bkg_spectrum(times: np.ndarray, tau, rho_tgt, ff, pixel_area,
     + physical background
     + Dark Count Rate
     """
-
+    #TODO aggiungere filter efficiency
     pdf = np.ones_like(times)
 
     num = tau * rho_tgt * ff * pixel_area * z**2

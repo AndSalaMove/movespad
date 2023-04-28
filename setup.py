@@ -37,7 +37,8 @@ setup(
     ],
     install_requires = [
         "numpy",
-        "matplotlib"
+        "matplotlib",
+        "PySimpleGUI"
     ],
     python_requires = ">=3.8",
     long_description=long_description,
