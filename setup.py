@@ -38,7 +38,8 @@ setup(
     install_requires = [
         "numpy",
         "matplotlib",
-        "PySimpleGUI"
+        "PySimpleGUI",
+        "pvlib"
     ],
     python_requires = ">=3.8",
     long_description=long_description,

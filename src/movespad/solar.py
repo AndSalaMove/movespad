@@ -1,6 +1,5 @@
 """Compute solar irradiance spectrum"""
 
-import solarpy as sp
 import numpy as np
 import pandas as pd
 from pvlib import spectrum, solarposition, irradiance, atmosphere
