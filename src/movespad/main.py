@@ -114,11 +114,12 @@ def execute_main(
         n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
 
         pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
-        imps_per_frame = np.floor(pulse_distance * fps)
+        imps_pre_frame = np.floor(pulse_distance * fps)
 
     else:
 
         print("You must specify an illumination mode.")
+        imps_per_frame = 0
         return
 
 

@@ -26,7 +26,7 @@ def gui():
         [sg.T("Beam divergence (mrad)", size=(28,1), justification="right"), sg.I(key='theta_h', size=(4,1), default_text="1.5"),
          sg.T("x") ,sg.I(key='theta_v', size=(4,1), default_text="1.5"), sg.T("PDP", justification='right', size=(26,1)),
          sg.I(key='pdp', default_text="0.2", size=(10,1))],
-        [sg.T("Illumination mode", size=(28,1), justification='right'), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(8,1)), 
+        [sg.T("Illumination mode", size=(28,1), justification='right'), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(8,1), default_value='Flash'), 
          sg.T("T dead (ns)", size=(28,1), justification='right'), sg.I(key="t_dead", default_text="7", size=(10,1)) ],
         [sg.T("", size=(39,1), justification='right'),
          sg.T("Coincidence number", size=(28,1), justification='right'), sg.I(key="coinc_thr", default_text="6", size=(10,1))],
@@ -60,6 +60,8 @@ def gui():
         [sg.T("TDC sigma (ps)", size=(28,1), justification='right'), sg.I(key='tdc_j', default_text='100', size=(10,1)),
             sg.T("", size=(15)), sg.Button('Pre-Output'), sg.Submit(auto_size_button=True), sg.Cancel(auto_size_button=True)],
         [sg.T("N bit (TDCxHIST)", size=(28,1), justification='right'), sg.I(key='n_bit_tdc', default_text='12', size=(5,1)), sg.I(key='n_bit_hist', default_text='5', size=(4,1))],
+        [sg.T("Clock frequency (MHz)", size=(28,1), justification='right'), sg.I(key='clock', default_text='100', size=(10,1))],
+        [sg.T("Number of pads", size=(28,1), justification='right'), sg.I(key='n_pads', default_text='1', size=(10,1))]
 
         # [sg.Text("", size=(40)), sg.Submit(auto_size_button=True), sg.Cancel(auto_size_button=True)]
 
@@ -82,14 +84,23 @@ Compare this number with the coincidence threshold and,
 if necessary, change the Power per Pixel parameter.
 """
 
+            matrix_tt = """Matrix dimension given FOV, resolution and maximum range to perform a flash"""
+            ppp = """Power per pixel assuming flash mode. Obtained by the
+total power budget and number of pixel in input"""
+
+            npix_tt = """Number of pixel that can be reached by the laser (assuming Scanning mode)
+with each shot. This count is obtained from the power budget and the power per pixel"""
+
+            nbit = """Number of bits needed by the TDC."""
+            
             layout2 = [
 
             [sg.T("Pre-Output Values", justification='center', size=(48,1), font=("Helvetica", 12, "bold"))],
-
             [sg.T("Average hit count", size=(32,1), justification='right', tooltip=hitcount_tip), sg.InputText(outs['hit_counts'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("[FLASH] Power per pixel (W)", size=(32,1), justification='right'), sg.InputText(outs['flash_ppp'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("[SCANNING] N pixel per shot", size=(32,1), justification='right'), sg.InputText(outs['n_pix_per_shot'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("Physical Matrix", size=(32,1), justification='right'), sg.InputText(outs['n_pix_x'], size=(7,1), use_readonly_for_disable=True),sg.InputText(outs['n_pix_y'], size=(7,1), use_readonly_for_disable=True)],
+            [sg.T("[FLASH] Power per pixel (W)", size=(32,1), justification='right', tooltip=ppp), sg.InputText(outs['flash_ppp'], size=(16,1), use_readonly_for_disable=True)],
+            [sg.T("[SCANNING] N pixel per shot", size=(32,1), justification='right', tooltip=npix_tt), sg.InputText(outs['n_pix_per_shot'], size=(16,1), use_readonly_for_disable=True)],
+            [sg.T("Number of pulses per frame", size=(32,1), justification='right'), sg.InputText(outs['imps_per_frame'], size=(16,1), use_readonly_for_disable=True)],
+            [sg.T("Flash Matrix", size=(32,1), justification='right', tooltip=matrix_tt), sg.InputText(outs['n_pix_x'], size=(7,1), use_readonly_for_disable=True),sg.InputText(outs['n_pix_y'], size=(7,1), use_readonly_for_disable=True)],
             [sg.T("Nbit_TDC", size=(32,1), justification='right'), sg.InputText(outs['n_bit_tdc'], size=(16,1), use_readonly_for_disable=True)]
 
             ]

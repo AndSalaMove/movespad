@@ -70,15 +70,52 @@ def get_pre_output(params):
     n_pix_x = int(np.ceil(scene_x / (fl(params['res_x'])/100)))
     n_pix_y = int(np.ceil(scene_y / (fl(params['res_y'])/100)))
 
+    n_bit_tdc, n_bit_hist = int(params['n_bit_tdc']), int(params['n_bit_hist'])
+    n_pads = int(params['n_pads'])
+
     pre_out['n_pix_x'], pre_out['n_pix_y'] = n_pix_x, n_pix_y
 
-
-    # Power per pixel in case of flash
-    laser_sigma = fl(params['power_budget'])*1e-9
-        # assumendo uno scanning riga per riga
+    illum_mode, fps = params['illum_mode'], fl(params['fps'])
+    n_sigma_recharge = 8
+    imps_per_frame = 0
+    laser_sigma = fl(params['laser_sigma'])*1e-9
     pulse_distance = max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
     pb = fl(params['power_budget'])
     n_pixel = n_pix_x * n_pix_y
+
+    if illum_mode=='Flash':
+        
+        pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_sigma_recharge*laser_sigma)
+        
+        pulse_energy = pb / n_pixel * pulse_distance
+        power_per_pixel = pulse_energy / (np.sqrt(2*np.pi)*laser_sigma)
+
+
+    elif illum_mode=='Scanning':
+
+        print("Scanning mode selected")
+        power_per_pixel =  float(params['pixel_power'])
+        pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
+        n_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
+    
+        print(f"Number of pixel hit in one shot: {n_pix_per_shot}")
+
+        n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
+
+        pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
+
+
+    else:
+        print("WARNING: You must select an illumination mode.")
+        return
+
+    time_per_frame = 1 / fps - (n_pix_x * n_pix_y * n_bit_tdc * n_bit_hist) / (fl(params['clock'])*1e6*n_pads)
+    # print(f"1/fps : {1./fps}s - time per frame: {time_per_frame}s")
+    imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
+
+    pre_out['imps_per_frame'] = imps_per_frame
+    # Power per pixel in case of flash
+
 
     power_per_pixel = pb / n_pixel
     flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
@@ -86,6 +123,9 @@ def get_pre_output(params):
     pre_out['flash_ppp'] = np.round(flash_power_per_pixel, 2)
 
     power_per_pixel =  float(params['pixel_power'])
+
+    if power_per_pixel >pb:
+        print(f"ATTENZIONE! Power per pixel maggiore del power budget totale.")
     pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
     n_pix_per_shot = int(np.floor(8 * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
     
@@ -97,7 +137,7 @@ def get_pre_output(params):
     t_min = 2*fl(params['range_min'])/pm.C
 
     histo_width = t_max - t_min
-    bin_width = min(fl(params['res_x'])/100, fl(params['res_y'])/100) / pm.C
+    bin_width = 0.01*fl(params['spatial_resolution']) / pm.C
     n_bins = np.ceil(histo_width/bin_width)
     n_bit = np.ceil(np.log2(n_bins))
 
