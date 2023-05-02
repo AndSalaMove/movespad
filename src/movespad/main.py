@@ -68,14 +68,11 @@ def execute_main(
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
     pixel_area, ff = (float(params['spad_size'])*10**(-6)*pixel_size)**2, float(params['ff'])
 
-    #TODO la pulse distance va calcolata!
-    # pulse_distance = max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
-    pulse_distance = float(params['pulse_distance'])*10**-6
     theta_h, theta_v = float(params['theta_h'])/1000, float(params['theta_v'])/1000
 
     f_lens, d_lens = float(params['f_lens'])/1000, float(params['d_lens'])/1000
     tau, bkg_klux = float(params['tau']), float(params['bkg_klux'])
-    laser_l = float(params['wavelength'])*1e-9
+    laser_l, after_p = float(params['wavelength'])*1e-9, float(params['after_pulsing'])
 
     t_dead, thr = float(params['t_dead'])*10**-9, int(params['coinc_thr'])
 
@@ -88,41 +85,52 @@ def execute_main(
     prob_lin, prob_diag = float(params['xtalk_r']), float(params['xtalk_d'])
 
     illum_mode, fwhm = params['illum_mode'], float(params['fwhm_bkg'])*1e-9
-    pb = float(params['power_budget'])
+
+    pb, fps = float(params['power_budget']), float(params['fps'])
+
     n_sigma_recharge = 8
     laser_sigma = float(params['laser_sigma'])*1e-9
+    n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
     if illum_mode=='Flash':
         
+        print("Flash mode selected")
         pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_sigma_recharge*laser_sigma)
         
-        n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
-
         pulse_energy = pb / n_pixel * pulse_distance
         power_per_pixel = pulse_energy / (np.sqrt(2*np.pi)*laser_sigma)
+
+        imps_per_frame = np.floor(pulse_distance * fps)
     
     elif illum_mode=='Scanning':
 
+        print("Scanning mode selected")
         power_per_pixel =  float(params['pixel_power'])
         pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
         n_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
     
         print(f"Number of pixel hit in one shot: {n_pix_per_shot}")
 
+        n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
+
+        pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
+        imps_per_frame = np.floor(pulse_distance * fps)
+
     else:
 
         print("You must specify an illumination mode.")
         return
 
-    # So quante scansioni mi servono per leggere tutta la matrice. Questo numoer di scansioni
-    # # moltipilicato per 8 sigma va messo nel max per calcolare la pulse distance  
-    print(illum_mode)
-    breakpoint()
+
+    pulse_distance = np.round(pulse_distance, 10)
     offset = 2*z / pm.C
     time_step = 100e-12
     start, stop = 0, pulse_distance * n_imp
     n_steps = int((stop-start)/time_step)
+    # print(f"n steps: {(stop-start)/time_step} --> {n_steps}")
     times = np.linspace(start, stop, n_steps)
+    array_len = len(times)
+    print(f"Len of times: {array_len}")
     bw = 1
 
     bkg_pow = solar.bkg_contrib(laser_l, fwhm, bkg_klux)  
@@ -133,7 +141,7 @@ def execute_main(
     print("Creating laser events...")
     las_spec = laser.full_laser_spectrum(offset, time_step, n_imp, tau, rho_tgt,
                         ff, pixel_area, f_lens, d_lens, theta_h, theta_v,
-                        z, pulse_distance, las_sigma, pulse_energy)
+                        z, pulse_distance, las_sigma, pulse_energy, len(times))
 
     print("Extracting number of laser photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
@@ -144,9 +152,13 @@ def execute_main(
 
     pix.create_and_split(t_laser, t_bkg, pdp)
     print("Generating crosstalk...")
-    pix.crosstalk(prob_lin, prob_diag)
+    xtalk_prob = {
+        'r': prob_lin,
+        'ur': prob_diag
+    }
+    pix.crosstalk(xtalk_prob)
     print("Applying t dead filter...")
-    pix.t_dead_filter(t_dead, pdp, pm.AP_PROB)
+    pix.t_dead_filter(t_dead, pdp, after_p)
 
     print(f"Photon count: {[len(ts.timestamps) for ts in pix.timestamps]}")
     print(f"Laser count: {[len([elem for elem in ts.timestamps if elem.type=='las']) for ts in pix.timestamps]}")
@@ -172,7 +184,6 @@ def execute_main(
     hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance)
 
     fig, ax = plt.subplots()
-    breakpoint()
     counts, bins = np.histogram(hist_data, bins=bins)
 
     print(sum(counts))

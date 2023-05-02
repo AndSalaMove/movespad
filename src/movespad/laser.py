@@ -18,7 +18,7 @@ def _base_laser_spectrum(times: np.ndarray, mean, sigma, pulse_energy) -> np.nda
 
 def full_laser_spectrum(init_offset, time_step, n_imps, tau, rho_tgt,
                         ff, pixel_area, f_lens, d_lens, theta_h, theta_v,
-                        z, pulse_distance, sigma_laser, pulse_energy):
+                        z, pulse_distance, sigma_laser, pulse_energy, array_len=None) -> np.ndarray:
     """
     Returns the normalized power spectrum of the laser.
     See Eq. 9 on the FBK paper
@@ -44,7 +44,7 @@ def full_laser_spectrum(init_offset, time_step, n_imps, tau, rho_tgt,
     return pdf
 
 
-def get_n_photons(times: np.ndarray, spectrum: np.ndarray, bin_width: int):
+def get_n_photons(times: np.ndarray, spectrum: np.ndarray, bin_width: int = 1):
     """Return number of photons generated for each bin.
     Photons are generated according to a Poisson process"""
 
@@ -55,7 +55,6 @@ def get_n_photons(times: np.ndarray, spectrum: np.ndarray, bin_width: int):
     n_ph = np.asarray([
         np.random.poisson(lmbd) for lmbd in n_ph_mean
     ])
-
     return n_ph, times[::bin_width][n_ph >= 1]
 
 
@@ -84,7 +83,7 @@ def get_hist_data(times: list, clock: float):
         if times[i]//clock == times[i-1]//clock:
             continue
         else:
-            print(f"{time} added to hist")
+            #print(f"{time} added to hist")
             res.append(time%clock)
 
     return res

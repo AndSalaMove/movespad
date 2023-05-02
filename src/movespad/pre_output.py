@@ -12,13 +12,15 @@ def optimal_laser_power(params):
     optimal laser power (6 hits out of 9)"""
 
     hit_counts = []
-    pulse_distance = fl(params['pulse_distance'])*1e-6
+
     time_step = 100e-12
     en = np.sqrt(2*pm.PI)*fl(params['laser_sigma'])*1e-9*fl(params['pixel_power'])
     n_imps = 1
-    for _ in trange(250, leave=False):
+    limit = 0.5e-6
+
+    for _ in trange(5, leave=False):
         laser_spec = laser.full_laser_spectrum(
-            init_offset= 2*fl(params['z'])/pm.C,
+            init_offset= 1e-8,
             time_step= 100e-12,
             n_imps=n_imps,
             tau = fl(params['tau']),
@@ -30,16 +32,17 @@ def optimal_laser_power(params):
             theta_h= fl(params['theta_h'])*1e-3,
             theta_v= fl(params['theta_v'])*1e-3,
             z = fl(params['z']),
-            pulse_distance= pulse_distance,
+            pulse_distance= limit,
             sigma_laser= fl(params['laser_sigma'])*1e-9,
-            pulse_energy=en
+            pulse_energy=en,
+            array_len=None
         )
 
-        start, stop = 0, pulse_distance * n_imps
+        start, stop = 0, limit * n_imps
         n_steps = int((stop-start)/time_step)
         times = np.linspace(start, stop, n_steps)
 
-        n_laser, t_laser = laser.get_n_photons(times, laser_spec, 1)
+        n_laser, t_laser = laser.get_n_photons(times, laser_spec)
         t_bkg = np.array([])
         pix = pixel.Pixel(size=3)
         pix.create_and_split(t_laser, t_bkg, pdp=fl(params['pdp']))
@@ -81,6 +84,12 @@ def get_pre_output(params):
     flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
 
     pre_out['flash_ppp'] = np.round(flash_power_per_pixel, 2)
+
+    power_per_pixel =  float(params['pixel_power'])
+    pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
+    n_pix_per_shot = int(np.floor(8 * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
+    
+    pre_out['n_pix_per_shot'] = n_pix_per_shot
 
     # N bits for tdc
 
