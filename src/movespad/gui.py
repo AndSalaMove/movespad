@@ -10,7 +10,7 @@ def gui():
     sg.theme("DarkBlue15")
     layout = [
 
-        [sg.T("MOVE-X LIDAR SIMULATION", justification='center', size=(80,1), font=("Helvetica", 14, "bold"))],
+        [sg.T("MOVE-X LIDAR SIMULATION v1.0.1", justification='center', size=(80,1), font=("Helvetica", 14, "bold"))],
 
         [sg.T("Laser specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold")),
          sg.T("Pixel specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
