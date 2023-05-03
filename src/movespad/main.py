@@ -143,6 +143,9 @@ def execute_main(
     las_spec = laser.full_laser_spectrum(offset, time_step, n_imp, tau, rho_tgt,
                         ff, pixel_area, f_lens, d_lens, theta_h, theta_v,
                         z, pulse_distance, las_sigma, pulse_energy, len(times))
+    
+    diff = len(las_spec) - len(times)
+    times = np.append(times, np.zeros(shape=(diff,)))
 
     print("Extracting number of laser photons...")
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
@@ -187,7 +190,6 @@ def execute_main(
     fig, ax = plt.subplots()
     counts, bins = np.histogram(hist_data, bins=bins)
 
-    print(sum(counts))
     counts = [min(count_limit, c) for c in counts]
 
     ax.stairs(counts, bins)
