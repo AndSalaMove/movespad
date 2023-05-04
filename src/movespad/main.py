@@ -59,12 +59,14 @@ def main():
     plt.title(f"Histogram ({pm.N_IMP} pulses)")
     plt.show()
 
+    print("******************************\n\n")
+
 
 def execute_main(
     params: dict 
 ):
-
-    power_budget, las_sigma = float(params['power_budget']), float(params['laser_sigma'])*10**(-9)
+ 
+    las_sigma = float(params['laser_sigma'])*10**(-9)
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
     pixel_area, ff = (float(params['spad_size'])*10**(-6)*pixel_size)**2, float(params['ff'])
 
@@ -87,6 +89,7 @@ def execute_main(
     illum_mode, fwhm = params['illum_mode'], float(params['fwhm_bkg'])*1e-9
 
     pb, fps = float(params['power_budget']), float(params['fps'])
+    multi_hit = int(params['multi_hit'])
 
     n_sigma_recharge = 8
     laser_sigma = float(params['laser_sigma'])*1e-9
@@ -173,19 +176,19 @@ def execute_main(
     survived = pix.coincidence(thr=thr, window=3*las_sigma)
 
     survived = pixel.Pixel.tdc_jitter(tdc_j, survived).tolist()
-    
+
     print(f"{len(survived)} events found")
-    print("Plotting results:")
+    print("Plotting results:\n**********\n\n")
     pix.plot_events(times, las_spec, survived)
     if len(survived)==0:
         plt.show()
-        return
-    
-    tot_n = 2**(n_bit_tdc)-1
-    count_limit = 2**(n_bit_hist)-1
+        return {'none': None}
+
+    tot_n = 2**(n_bit_tdc)
+    count_limit = 2**(n_bit_hist)
     t_min = 2*rng_min / pm.C
     bins = np.linspace(t_min, pulse_distance, tot_n)
-    hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance)
+    hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance, multi_hit)
 
     fig, ax = plt.subplots()
     counts, bins = np.histogram(hist_data, bins=bins)
@@ -193,12 +196,17 @@ def execute_main(
     counts = [min(count_limit, c) for c in counts]
 
     ax.stairs(counts, bins)
+    centroids, bfl = laser.get_centroids(bins, counts, hist_data)
+    bfl = np.asarray(bfl) * max(counts)
+    #ax.plot(bins, bfl)
 
     secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C, lambda x : 2*x/pm.C))
     secax.set_label("Distance [m]")
-    plt.title(f"TOF histogram {n_imp} pulses")
+    
+    plt.title(f"TOF histogram {n_imp} pulses") 
     plt.show()
 
+    return centroids
 
 if __name__ == '__main__':
     main()

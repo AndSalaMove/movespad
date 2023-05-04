@@ -39,7 +39,8 @@ setup(
         "numpy",
         "matplotlib",
         "PySimpleGUI",
-        "pvlib"
+        "pvlib",
+        "scipy"
     ],
     python_requires = ">=3.8",
     long_description=long_description,

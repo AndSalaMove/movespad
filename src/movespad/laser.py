@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from movespad import params as pm
 from tqdm import tqdm, trange
+from scipy import stats
 
 
 def gauss_1d(arr: np.ndarray, mean: float, sig: float) -> np.ndarray:
@@ -69,26 +70,65 @@ def plot_spectrum(times, spectrum, ax, label):
     ax.plot(times, spectrum, label=label)
 
 
-def get_hist_data(times: list, clock: float):
+def get_hist_data(times: list, clock: float, multi_hit: int):
 
     if len(times)==0:
         return
+
+    imp_numbers = [t//clock for t in times]
+
+
     res = [times[0]%clock]
-    print(times[0], " added to hist")
+    count = 0
 
     for i, time in enumerate(times):
         if i==0:
             continue
 
         if times[i]//clock == times[i-1]//clock:
-            continue
+            if count < multi_hit:
+                res.append(time%clock)
+                count+=1
+            else:
+                continue
         else:
-            #print(f"{time} added to hist")
+            count = 0
             res.append(time%clock)
+            count += 1
 
     return res
 
 
-if __name__ == '__main__':
+def histo_avg(bin_centers, counts) ->float:
 
-    print(get_hist_data([1,13,14,15,34,36,42], 10)    )
+    return sum(np.multiply(np.asarray(bin_centers), np.asarray(counts)))/sum(counts)
+
+
+def get_centroids(bins, counts, data):
+    """
+    Extract histogram centroids with the following methods:
+    1. Bin with highest count ('max')
+    2. Histogram mean ('mean')
+    3. Mean of first 10% of bins ('10perc')
+    4. Mean of gaussian fit ('gaus')
+    """
+
+    centr = {}
+
+    bin_c = [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)] 
+
+    centr['mean'] = 0.5 * pm.C * histo_avg(bin_c, counts)
+
+    centr['max'] = 0.5 * pm.C * bin_c[np.argmax(counts)]
+
+    sorted_counts, sorted_bins = zip(*sorted(zip(counts, bin_c), reverse=True))
+    chunk_10 = int(0.1*len(counts))
+    centr['10perc'] = 0.5 * pm.C * histo_avg(sorted_bins[:chunk_10], sorted_counts[:chunk_10])
+
+    mu, sigma = stats.norm.fit(data)
+    best_fit_line = stats.norm.pdf(bins, mu, sigma)
+    
+    centr['gaus'] = 0.5* pm.C *mu
+ 
+    return centr, best_fit_line
+

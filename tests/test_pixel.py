@@ -2,7 +2,7 @@
 
 import numpy as np
 import random
-from movespad import spad, pixel
+from movespad import spad, pixel, laser
 
 T_DEAD_TEST = 1
 
