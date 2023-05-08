@@ -104,7 +104,7 @@ def histo_avg(bin_centers, counts) ->float:
     return sum(np.multiply(np.asarray(bin_centers), np.asarray(counts)))/sum(counts)
 
 
-def get_centroids(bins, counts, data):
+def get_centroids(bins, counts, data, real_value):
     """
     Extract histogram centroids with the following methods:
     1. Bin with highest count ('max')
@@ -117,18 +117,18 @@ def get_centroids(bins, counts, data):
 
     bin_c = [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)] 
 
-    centr['mean'] = 0.5 * pm.C * histo_avg(bin_c, counts)
+    centr['mean'] = 0.5 * pm.C * histo_avg(bin_c, counts) - real_value
 
-    centr['max'] = 0.5 * pm.C * bin_c[np.argmax(counts)]
+    centr['max'] = 0.5 * pm.C * bin_c[np.argmax(counts)] - real_value
 
     sorted_counts, sorted_bins = zip(*sorted(zip(counts, bin_c), reverse=True))
     chunk_10 = int(0.1*len(counts))
-    centr['10perc'] = 0.5 * pm.C * histo_avg(sorted_bins[:chunk_10], sorted_counts[:chunk_10])
+    centr['10perc'] = 0.5 * pm.C * histo_avg(sorted_bins[:chunk_10], sorted_counts[:chunk_10]) - real_value
 
     mu, sigma = stats.norm.fit(data)
     best_fit_line = stats.norm.pdf(bins, mu, sigma)
     
-    centr['gaus'] = 0.5* pm.C *mu
+    centr['gaus'] = 0.5* pm.C *mu - real_value
  
     return centr, best_fit_line
 

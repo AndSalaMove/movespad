@@ -14,42 +14,6 @@ plt.style.use('Solarize_Light2')
 
 # Helper Functions
 
-def draw_figure(canvas, figure):
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
-
-
-def makeSynthData():
-    xData = np.random.randint(100, size=_VARS['dataSize'])
-    yData = np.linspace(0, _VARS['dataSize'],
-                        num=_VARS['dataSize'], dtype=int)
-    return (xData, yData)
-
-
-def drawChart():
-    _VARS['pltFig'] = plt.figure()
-    dataXY = makeSynthData()
-    plt.plot(dataXY[0], dataXY[1], '.k')
-    _VARS['fig_agg'] = draw_figure(
-        _VARS['window']['figCanvas'].TKCanvas, _VARS['pltFig'])
-
-
-def updateChart():
-    _VARS['fig_agg'].get_tk_widget().forget()
-    dataXY = makeSynthData()
-    # plt.cla()
-    plt.clf()
-    plt.plot(dataXY[0], dataXY[1], '.k')
-    _VARS['fig_agg'] = draw_figure(
-        _VARS['window']['figCanvas'].TKCanvas, _VARS['pltFig'])
-
-
-def updateData(val):
-    _VARS['dataSize'] = val
-    updateChart()
-
 
 def gui():
 
@@ -138,7 +102,7 @@ def gui():
  
     layout = [
  
-        [sg.T("MOVE-X LIDAR SIMULATION v1.0.1", justification='center', size=(120,1), font=("Helvetica", 14, "bold"))],
+        [sg.T("MOVE-X LIDAR SIMULATION v1.1.0", justification='center', size=(120,1), font=("Helvetica", 14, "bold"))],
         [sg.T("")],
         [sg.Column(left, pad=(0, 0)), sg.Column(center, pad=(0, 0)), sg.Column(right, pad=(0, 0))],
  
@@ -228,28 +192,29 @@ def gui():
                 for key in centroids.keys():
                     results[key].append(centroids[key])
 
+            errors = {key: np.mean(results[key]) for key in results.keys()}
             plt.subplot(2,2,1)
-            plt.title('Highest bin', fontsize=12)
-            plt.hist(centroids['max'], density=True, bins=30)
-            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+            plt.title(f"Highest bin ({errors['max']})", fontsize=10)
+            plt.hist(results['max'], density=True, bins=30)
+            plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.subplot(2,2,2)
-            plt.title('Histogram average',  fontsize=12)
-            plt.hist(centroids['mean'], density=True, bins=30)
-            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+            plt.title(f"Histogram average ({errors['mean']})",  fontsize=10)
+            plt.hist(results['mean'], density=True, bins=30)
+            plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.subplot(2,2,3)
-            plt.title('Top 10% average',  fontsize=12)
-            plt.hist(centroids['10perc'], density=True, bins=30)
-            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+            plt.title(f"Top 10% average ({errors['10perc']})",  fontsize=10)
+            plt.hist(results['10perc'], density=True, bins=30)
+            plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.subplot(2,2,4)
-            plt.title('Gaussian fit mean',  fontsize=12)
-            plt.hist(centroids['gaus'], density=True, bins=30)
-            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+            plt.title(f"Gaussian fit mean ({errors['gaus']})",  fontsize=10)
+            plt.hist(results['gaus'], density=True, bins=30)
+            plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.show()

@@ -18,7 +18,7 @@ def test_centroid():
     bins = [.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5]
     counts = [2, 3, 6, 7, 2, 0, 0, 0, 0, 0]
 
-    centroids, bfl = laser.get_centroids(bins, counts, data)
+    centroids, bfl = laser.get_centroids(bins, counts, data, real_value=0)
 
     assert centroids['max']==4
     assert centroids['mean']==3.2

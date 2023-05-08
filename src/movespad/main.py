@@ -6,62 +6,6 @@ from movespad import laser, bkg, params as pm, pixel
 from movespad import spad, solar
 
 
-def main():
-
-    offset = 2* pm.Z / pm.C
-    time_step = 100e-12
-    start, stop = 0, pm.PULSE_DISTANCE * pm.N_IMP
-    n_steps = int((stop-start)/time_step)
-    times = np.linspace(start, stop, n_steps)
-    bw = 1 #points --> 50 ps
-
-    print("Creating bkg events...")
-    bkg_spec = bkg.bkg_spectrum(times, pm.TAU_OPT, pm.RHO_TGT, pm.FF,
-                                pm.PIXEL_AREA, pm.Z, pm.F_LENS,
-                                pm.D_LENS,pm.BKG_POWER)
-
-    print("Creating laser events...")
-    las_spec = laser.full_laser_spectrum(offset, time_step, pm.N_IMP, pm.TAU_OPT,
-                        pm.RHO_TGT, pm.FF, pm.PIXEL_AREA, pm.F_LENS,
-                        pm.D_LENS, pm.THETA_H, pm.THETA_V, pm.Z,
-                        pm.PULSE_DISTANCE, pm.SIGMA_LASER, pm.PULSE_ENERGY)
-
-
-    print("Extracting number of laser photons...")
-    n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
-    print("Extracting number of bkg photons...")
-    n_ph_bkg, t_bkg = bkg.get_n_photons_bkg(times, bkg_spec, bw)
-
-    pix = pixel.Pixel(size = pm.PIXEL_SIZE)
-
-    pix.create_and_split(t_laser, t_bkg, pm.PDP)
-    print("Generating crosstalk...")
-    pix.crosstalk(pm.XTALK_PROBS)
-    print("Applying t dead filter...")
-    pix.t_dead_filter(pm.T_DEAD, pm.PDP, pm.AP_PROB)
-    print("Applying SPAD jitter...")
-    pix.spad_jitter(pm.SPAD_JITTER)
-    print(f"Photon count: {[len(ts.timestamps) for ts in pix.timestamps]}")
-    print(f"Laser count: {[len([elem for elem in ts.timestamps if elem.type=='las']) for ts in pix.timestamps]}")
-
-    print("Applying coincidence...")
-    survived = pix.coincidence(thr=pm.COINCIDENCE_THR, window=3*pm.SIGMA_LASER)
-    print("Plotting results:")
-    pix.plot_events(times, las_spec, survived)
-
-    hist_data = laser.get_hist_data([s.time for s in survived], pm.PULSE_DISTANCE)
-
-    fig, ax = plt.subplots()
-    ax.hist(hist_data, bins=[i*1e-9 for i in range(0,1350)])
-
-    secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C, lambda x : 2*x/pm.C))
-    secax.set_label("Distance [m]")
-    plt.title(f"Histogram ({pm.N_IMP} pulses)")
-    plt.show()
-
-    print("******************************\n\n")
-
-
 def execute_main(
     params: dict,
     mc : bool
@@ -179,8 +123,9 @@ def execute_main(
 
     if not mc:
         print(f"Photon count: {[len(ts.timestamps) for ts in pix.timestamps]}")
-        print(f"Laser count: {[len([elem for elem in ts.timestamps if elem.type=='las']) for ts in pix.timestamps]}")
+    print(f"Laser count: {[len([elem for elem in ts.timestamps if elem.type=='las']) for ts in pix.timestamps]}")
 
+    if not mc:
         print("Applying SPAD jitter...")
     pix.spad_jitter(spad_j)
 
@@ -204,11 +149,10 @@ def execute_main(
     bins = np.linspace(t_min, pulse_distance, tot_n)
     hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance, multi_hit)
 
-
     counts, bins = np.histogram(hist_data, bins=bins)
 
     counts = [min(count_limit, c) for c in counts]
-    centroids, bfl = laser.get_centroids(bins, counts, hist_data)
+    centroids, bfl = laser.get_centroids(bins, counts, hist_data, real_value=z)
     bfl = np.asarray(bfl) * max(counts)
 
     if not mc:
@@ -221,8 +165,6 @@ def execute_main(
         plt.title(f"TOF histogram {n_imp} pulses")
         plt.show()
 
+    print(f"Max: {centroids['max']:.2f} - Mean: {centroids['mean']:.2f} - Top10%: {centroids['10perc']:.2f} - Gaus: {centroids['gaus']:.2f}")
+
     return centroids
-
-
-if __name__ == '__main__':
-    main()
