@@ -1,71 +1,148 @@
 import PySimpleGUI as sg
-import os, pathlib
+import matplotlib.pyplot as plt
+import numpy as np
 from movespad import main, pre_output
+
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+_VARS = {'window': False,
+         'fig_agg': False,
+         'pltFig': False,
+         'dataSize': 60}
+
+plt.style.use('Solarize_Light2')
+
+# Helper Functions
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
+
+def makeSynthData():
+    xData = np.random.randint(100, size=_VARS['dataSize'])
+    yData = np.linspace(0, _VARS['dataSize'],
+                        num=_VARS['dataSize'], dtype=int)
+    return (xData, yData)
+
+
+def drawChart():
+    _VARS['pltFig'] = plt.figure()
+    dataXY = makeSynthData()
+    plt.plot(dataXY[0], dataXY[1], '.k')
+    _VARS['fig_agg'] = draw_figure(
+        _VARS['window']['figCanvas'].TKCanvas, _VARS['pltFig'])
+
+
+def updateChart():
+    _VARS['fig_agg'].get_tk_widget().forget()
+    dataXY = makeSynthData()
+    # plt.cla()
+    plt.clf()
+    plt.plot(dataXY[0], dataXY[1], '.k')
+    _VARS['fig_agg'] = draw_figure(
+        _VARS['window']['figCanvas'].TKCanvas, _VARS['pltFig'])
+
+
+def updateData(val):
+    _VARS['dataSize'] = val
+    updateChart()
 
 
 def gui():
 
     sg.set_options(font=("Helvetica", 12))
-
+ 
     sg.theme("DarkBlue15")
+ 
+    left = [
+ 
+        [sg.T("Laser specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
+        [sg.T("Power per Pixel (W)", size=(28,1), justification='right', tooltip='Useful only for Scanning mode'), sg.I(key='pixel_power', default_text='2', size=(10,1))],
+        [sg.T("Power Budget (W)", size=(28,1), justification='right'), sg.I(key='power_budget', default_text='18', size=(10,1))],
+        [sg.T("Sigma (ns)", size=(28,1), justification='right'),     sg.I(key='laser_sigma', default_text='1.9108', size=(10, 1))],
+        [sg.T("Wavelength (nm)", size=(28,1), justification='right'), sg.I(key='wavelength', default_text='905', size=(10,1))],
+        [sg.T("Beam divergence (mrad)", size=(28,1), justification="right"), sg.I(key='theta_h', size=(3,1), default_text="1.5"), sg.T("x") ,sg.I(key='theta_v', size=(3,1), default_text="1.5")],
+        [sg.T("Frames per second", size=(28,1), justification='right'), sg.I(key="fps", default_text='10', size=(10,1))],
+        [sg.T("FOV (deg)", size=(28,1), justification='right'), sg.I(key='fov_x', default_text='30', size=(4,1)), sg.I(key='fov_y', default_text='30', size=(4,1))],
+        [sg.T("Resolution (cm)", size=(28,1), justification='right'), sg.I(key='res_x', default_text='15', size=(4,1)), sg.I(key='res_y', default_text='15', size=(4,1))],
+        [sg.T("Illumination mode", size=(28,1), justification='right'), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(10,1), default_value='Flash')],
+ 
+        [sg.T("")],
+        [sg.T("")],
+        [sg.T("")],
+ 
+        [sg.T("Optics", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
+ 
+        [sg.T("Focal length (mm)", size=(28,1), justification='right'),  sg.I(key='f_lens', default_text='20', size=(10,1))],
+        [sg.T("Lens diameter (mm)", size=(28,1), justification='right'), sg.I(key='d_lens', default_text='16', size=(10,1))],
+        [sg.T("Transmittance", size=(28,1), justification='right'),      sg.I(key='tau', default_text='0.90', size=(10,1))],
+        [sg.T("Optical Filter FWHM (nm)", size=(28,1), justification='right'),  sg.I(key='fwhm_bkg', default_text='10', size=(10,1))],
+ 
+        [sg.T("")],
+        [sg.T("")],
+ 
+    ]
+ 
+    center = [
+        [sg.T("Pixel specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
+        [sg.T("SPADs per side", size=(28, 1), justification='right'), sg.I(key='pixel_size', default_text='3', size=(10,1))],
+        [sg.T("Physical Matrix (LxH)", size=(28,1), justification='right'), sg.I(key='h_matrix', default_text='64', size=(3,1)), sg.T("x"), sg.I(key='v_matrix', default_text='64', size=(3,1))],
+        [sg.T("Fill factor", size=(28,1), justification='right'), sg.I(key='ff', default_text='0.98', size=(10,1))],
+        [sg.T("SPAD size (um)", size=(28,1), justification='right'), sg.I(key='spad_size', default_text="10.17", size=(10,1))],
+        [sg.T("PDP", justification='right', size=(28,1)), sg.I(key='pdp', default_text="0.2", size=(10,1))],
+        [sg.T("T dead (ns)", size=(28,1), justification='right'), sg.I(key="t_dead", default_text="7", size=(10,1))],
+        [sg.T("Coincidence number", size=(28,1), justification='right'), sg.I(key="coinc_thr", default_text="6", size=(10,1))],
+        [sg.T("Spad sigma (ps)", size=(28,1), justification='right'), sg.I(key="spad_j", default_text="72", size=(10,1))],
+        [sg.T("After pulsing probability", size=(28,1), justification='right'), sg.I(key="after_pulsing", default_text="0.014", size=(10,1))],
+        [sg.T("Crosstalk Probability (L,D)", size=(28,1), justification='right'), sg.I(key='xtalk_r', default_text='0.03', size=(4,1)), sg.I(key='xtalk_d', default_text='0.01', size=(4,1))],
+        [sg.T("Dark Count Rate (cps)", size=(28,1), justification='right'), sg.I(key="dcr", default_text="6800", size=(10,1))],
+        [sg.T("")],
+ 
+        [sg.T("Physical parameters", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
+ 
+        [sg.T("Range (m)", size=(28,1), justification='right'), sg.I(key="range_min", default_text="10", size=(4,1)), sg.I(key="range_max", default_text="200", size=(4,1))],
+        [sg.T("Target Distance (m)", size=(28,1), justification='right'), sg.I(key="z", default_text="180", size=(10,1))],
+        [sg.T("Number of pulses", size=(28,1), justification='right'), sg.I(key='n_imp', default_text='30', size=(10,1))],
+        [sg.T("Target reflectivity", size=(28,1), justification='right'), sg.I(key='rho_tgt', default_text='0.2', size=(10,1))],
+        [sg.T("Background klux", size=(28,1), justification='right'), sg.I(key="bkg_klux", default_text="120", size=(10,1))],
+        [sg.T("")],
+    ]
+ 
+    right = [
+        [sg.T("TDC", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
+        [sg.T("Measurement Resolution (cm)", size=(28,1), justification='right'), sg.I(key="spatial_resolution", default_text="10", size=(10,1))],
+        [sg.T("TDC sigma (ps)", size=(28,1), justification='right'), sg.I(key='tdc_j', default_text='100', size=(10,1))],
+        [sg.T("N bit (TDCxHIST)", size=(28,1), justification='right'), sg.I(key='n_bit_tdc', default_text='12', size=(3,1)), sg.T("x"), sg.I(key='n_bit_hist', default_text='5', size=(3,1))],
+        [sg.T("Clock frequency (MHz)", size=(28,1), justification='right'), sg.I(key='clock', default_text='100', size=(10,1))],
+        [sg.T("Number of pads", size=(28,1), justification='right'), sg.I(key='n_pads', default_text='1', size=(10,1))],
+        [sg.T("Multi hit", size=(28,1), justification='right'), sg.I(key="multi_hit", default_text="1", size=(10,1))],
+        [sg.T("")],
+        [sg.T("")],
+        [sg.T("")],
+        [sg.T("")],
+        [sg.T("")],
+        [sg.T("Monte Carlo Runs", size=(28,1), justification='right'), sg.I(key='mc-runs', default_text="0", size=(10,1))],
+        [sg.T("")],
+ 
+        [sg.T("", size=(20,1)), sg.Button('Pre-Output', size=(10,1), button_color=())],
+        [sg.T("", size=(20,1)), sg.Submit(size=(10,1))],
+        [sg.T("", size=(20,1)), sg.Button('Monte Carlo', size=(10,1), button_color=('gold2', 'black'))],
+        [sg.T("", size=(20,1)), sg.Cancel(size=(10,1), button_color=('gainsboro', 'indianred'))],
+
+        [sg.T("")],
+    ]
+ 
+ 
     layout = [
-
-        [sg.T("MOVE-X LIDAR SIMULATION v1.0.1", justification='center', size=(80,1), font=("Helvetica", 14, "bold"))],
-
-        [sg.T("Laser specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold")),
-         sg.T("Pixel specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold")),
-         sg.T("TDC", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
-
-        [sg.T("Power per Pixel (W)", size=(28,1), justification='right', tooltip='Useful only for Scanning mode'), sg.I(key='pixel_power', default_text='2', size=(10,1)),
-         sg.T("SPADs per side", size=(28, 1), justification='right'), sg.I(key='pixel_size', default_text='3', size=(10,1)),
-         sg.T("Measurement Resolution (cm)", size=(28,1), justification='right'), sg.I(key="spatial_resolution", default_text="10", size=(10,1))],
-        [sg.T("Power Budget (W)", size=(28,1), justification='right'), sg.I(key='power_budget', default_text='18', size=(10,1)), 
-         sg.T("Physical Matrix (LxH)", size=(28,1), justification='right'), sg.I(key='h_matrix', default_text='64', size=(3,1)), sg.T("x"), sg.I(key='v_matrix', default_text='64', size=(3,1)),
-         sg.T("TDC sigma (ps)", size=(28,1), justification='right'), sg.I(key='tdc_j', default_text='100', size=(10,1))],
-        [sg.T("Sigma (ns)", size=(28,1), justification='right'),     sg.I(key='laser_sigma', default_text='1.9108', size=(10, 1)),
-         sg.T("Fill factor", size=(28,1), justification='right'), sg.I(key='ff', default_text='0.98', size=(10,1)),
-         sg.T("N bit (TDCxHIST)", size=(28,1), justification='right'), sg.I(key='n_bit_tdc', default_text='12', size=(4,1)), sg.I(key='n_bit_hist', default_text='5', size=(4,1))],
-        [sg.T("Wavelength (nm)", size=(28,1), justification='right'), sg.I(key='wavelength', default_text='905', size=(10,1)),
-         sg.T("SPAD size (um)", size=(28,1), justification='right'), sg.I(key='spad_size', default_text="10.17", size=(10,1)),
-         sg.T("Clock frequency (MHz)", size=(28,1), justification='right'), sg.I(key='clock', default_text='100', size=(10,1))],
-        [sg.T("Beam divergence (mrad)", size=(28,1), justification="right"), sg.I(key='theta_h', size=(3,1), default_text="1.5"),
-         sg.T("x") ,sg.I(key='theta_v', size=(3,1), default_text="1.5"), sg.T("PDP", justification='right', size=(28,1)),
-         sg.I(key='pdp', default_text="0.2", size=(10,1)), sg.T("Number of pads", size=(28,1), justification='right'), sg.I(key='n_pads', default_text='1', size=(10,1))],
-        [sg.T("Illumination mode", size=(28,1), justification='right'), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(9,1), default_value='Flash'), 
-         sg.T("T dead (ns)", size=(28,1), justification='right'), sg.I(key="t_dead", default_text="7", size=(10,1)),
-         sg.T("Multi hit", size=(28,1), justification='right'), sg.I(key="multi_hit", default_text="1", size=(10,1))],
-        [sg.T("", size=(39,1), justification='right'),
-         sg.T("Coincidence number", size=(28,1), justification='right'), sg.I(key="coinc_thr", default_text="6", size=(10,1))],
-        [sg.T("", size=(39,1)), sg.T("Spad sigma (ps)", size=(28,1), justification='right'), sg.I(key="spad_j", default_text="72", size=(10,1))],
-        [sg.T("FOV (deg)", size=(28,1), justification='right'), sg.I(key='fov_x', default_text='30', size=(4,1)), sg.I(key='fov_y', default_text='30', size=(4,1)),
-         sg.T("After pulsing probability", size=(28,1), justification='right'), sg.I(key="after_pulsing", default_text="0.014", size=(10,1))],
-        [sg.T("Resolution (cm)", size=(28,1), justification='right'), sg.I(key='res_x', default_text='15', size=(4,1)), sg.I(key='res_y', default_text='15', size=(4,1)),
-         sg.T("Crosstalk Probability (L,D)", size=(28,1), justification='right'), sg.I(key='xtalk_r', default_text='0.025', size=(5,1)), sg.I(key='xtalk_d', default_text='0.01', size=(4,1))],
-        [sg.T("Frames per second", size=(28,1), justification='right'), sg.I(key="fps", default_text='10', size=(10,1)),
-         sg.T("Dark Count Rate (cps)", size=(28,1), justification='right'), sg.I(key="dcr", default_text="6800", size=(10,1))],
+ 
+        [sg.T("MOVE-X LIDAR SIMULATION v1.0.1", justification='center', size=(120,1), font=("Helvetica", 14, "bold"))],
         [sg.T("")],
-
-        [sg.T("Optics", justification='center', size=(40,1), font=("Helvetica", 12, "bold")),
-         sg.T("Physical parameters", justification='center', size=(40,1), font=("Helvetica", 12, "bold")),
-         sg.T("", size=(15,1)),
-         sg.Button('Pre-Output', size=(10,1))],
-
-        [sg.T("Focal length (mm)", size=(28,1), justification='right'),  sg.I(key='f_lens', default_text='20', size=(10,1)),
-         sg.T("Range (m)", size=(28,1), justification='right'), sg.I(key="range_min", default_text="10", size=(4,1)), sg.I(key="range_max", default_text="200", size=(4,1)),
-         sg.T("", size=(24,1)),
-         sg.Submit(size=(10,1))],
-        [sg.T("Lens diameter (mm)", size=(28,1), justification='right'), sg.I(key='d_lens', default_text='16', size=(10,1)), 
-         sg.T("Target Distance (m)", size=(28,1), justification='right'), sg.I(key="z", default_text="180", size=(10,1)),
-         sg.T("", size=(25,1)),
-         sg.Cancel(size=(10,1))],
-        [sg.T("Transmittance", size=(28,1), justification='right'),      sg.I(key='tau', default_text='0.90', size=(10,1)), 
-         sg.T("Number of pulses", size=(28,1), justification='right'), sg.I(key='n_imp', default_text='30', size=(10,1))],
-        [sg.T("Optical Filter FWHM (nm)", size=(28,1), justification='right'),  sg.I(key='fwhm_bkg', default_text='10', size=(10,1)), 
-         sg.T("Target reflectivity", size=(28,1), justification='right'), sg.I(key='rho_tgt', default_text='0.2', size=(10,1))],
-        [sg.T("", size=(38,1)),
-         sg.T("Background klux", size=(28,1), justification='right'), sg.I(key="bkg_klux", default_text="120", size=(10,1))],
-        [sg.T("")],
-
+        [sg.Column(left, pad=(0, 0)), sg.Column(center, pad=(0, 0)), sg.Column(right, pad=(0, 0))],
+ 
+ 
     ]
 
     window = sg.Window("LIDAR starter", layout=layout, resizable=True)
@@ -95,7 +172,7 @@ def gui():
             with each shot. This count is obtained from the power budget and the power per pixel"""
 
             nbit = """Number of bits needed by the TDC."""
-            
+
             layout_2 = [
 
             [sg.T("Pre-Output Values", justification='center', size=(48,1), font=("Helvetica", 12, "bold"))],
@@ -133,5 +210,48 @@ def gui():
                     window3.close()
 
 
-    window.close()
+        elif event=='Monte Carlo':
+            print(f"* Monte Carlo @{values['mc-runs']} *")
 
+            n_runs = int(values['mc-runs'])
+            results = {
+                'max': [],
+                'mean': [],
+                '10perc': [],
+                'gaus': []        
+            }
+
+
+            for run in range(n_runs):
+                print(f"*********** RUN {1+run}/{n_runs} ****************")
+                centroids = main.execute_main(params=values, mc=True)
+                for key in centroids.keys():
+                    results[key].append(centroids[key])
+
+            plt.subplot(2,2,1)
+            plt.title('Highest bin', fontsize=12)
+            plt.hist(centroids['max'], density=True, bins=30)
+            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+                        linestyle='dashed', color='crimson')
+
+            plt.subplot(2,2,2)
+            plt.title('Histogram average',  fontsize=12)
+            plt.hist(centroids['mean'], density=True, bins=30)
+            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+                        linestyle='dashed', color='crimson')
+
+            plt.subplot(2,2,3)
+            plt.title('Top 10% average',  fontsize=12)
+            plt.hist(centroids['10perc'], density=True, bins=30)
+            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+                        linestyle='dashed', color='crimson')
+
+            plt.subplot(2,2,4)
+            plt.title('Gaussian fit mean',  fontsize=12)
+            plt.hist(centroids['gaus'], density=True, bins=30)
+            plt.axvline(x = float(values['z']), ymin=0, ymax=1,
+                        linestyle='dashed', color='crimson')
+
+            plt.show()
+
+    window.close()
