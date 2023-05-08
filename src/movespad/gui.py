@@ -5,15 +5,10 @@ from movespad import main, pre_output
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-_VARS = {'window': False,
-         'fig_agg': False,
-         'pltFig': False,
-         'dataSize': 60}
 
 plt.style.use('Solarize_Light2')
 
 # Helper Functions
-
 
 def gui():
 
@@ -142,6 +137,7 @@ def gui():
             [sg.T("Pre-Output Values", justification='center', size=(48,1), font=("Helvetica", 12, "bold"))],
             [sg.T("Average hit count", size=(32,1), justification='right', tooltip=hitcount_tip), sg.InputText(outs['hit_counts'], size=(16,1), use_readonly_for_disable=True)],
             [sg.T("[FLASH] Power per pixel (W)", size=(32,1), justification='right', tooltip=ppp), sg.InputText(outs['flash_ppp'], size=(16,1), use_readonly_for_disable=True)],
+            [sg.T("[FLASH] Power per pixel (input matrix, W)", size=(32,1), justification='right', tooltip=ppp), sg.InputText(outs['flash_ppp_input'], size=(16,1), use_readonly_for_disable=True)],
             [sg.T("[SCANNING] N pixel per shot", size=(32,1), justification='right', tooltip=npix_tt), sg.InputText(outs['n_pix_per_shot'], size=(16,1), use_readonly_for_disable=True)],
             [sg.T("Number of pulses per frame", size=(32,1), justification='right'), sg.InputText(outs['imps_per_frame'], size=(16,1), use_readonly_for_disable=True)],
             [sg.T("Flash Matrix", size=(32,1), justification='right', tooltip=matrix_tt), sg.InputText(outs['n_pix_x'], size=(7,1), use_readonly_for_disable=True),sg.InputText(outs['n_pix_y'], size=(7,1), use_readonly_for_disable=True)],
@@ -194,25 +190,25 @@ def gui():
 
             errors = {key: np.mean(results[key]) for key in results.keys()}
             plt.subplot(2,2,1)
-            plt.title(f"Highest bin ({errors['max']})", fontsize=10)
+            plt.title(f"Highest bin ({errors['max']:.3f})", fontsize=10)
             plt.hist(results['max'], density=True, bins=30)
             plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.subplot(2,2,2)
-            plt.title(f"Histogram average ({errors['mean']})",  fontsize=10)
+            plt.title(f"Histogram average ({errors['mean']:.3f})",  fontsize=10)
             plt.hist(results['mean'], density=True, bins=30)
             plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.subplot(2,2,3)
-            plt.title(f"Top 10% average ({errors['10perc']})",  fontsize=10)
+            plt.title(f"Top 10% average ({errors['10perc']:.3f})",  fontsize=10)
             plt.hist(results['10perc'], density=True, bins=30)
             plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')
 
             plt.subplot(2,2,4)
-            plt.title(f"Gaussian fit mean ({errors['gaus']})",  fontsize=10)
+            plt.title(f"Gaussian fit mean ({errors['gaus']:.3f})",  fontsize=10)
             plt.hist(results['gaus'], density=True, bins=30)
             plt.axvline(x = 0, ymin=0, ymax=1,
                         linestyle='dashed', color='crimson')

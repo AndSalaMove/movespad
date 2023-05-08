@@ -70,6 +70,9 @@ def get_pre_output(params):
     n_pix_x = int(np.ceil(scene_x / (fl(params['res_x'])/100)))
     n_pix_y = int(np.ceil(scene_y / (fl(params['res_y'])/100)))
 
+    n_pix_input = (int(params['h_matrix']), int(params['v_matrix']))
+
+
     n_bit_tdc, n_bit_hist = int(params['n_bit_tdc']), int(params['n_bit_hist'])
     n_pads = int(params['n_pads'])
 
@@ -82,13 +85,17 @@ def get_pre_output(params):
     pulse_distance = max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
     pb = fl(params['power_budget'])
     n_pixel = n_pix_x * n_pix_y
+    n_pixel_input  = n_pix_input[0] * n_pix_input[1]
 
     if illum_mode=='Flash':
         
         pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_sigma_recharge*laser_sigma)
         
         pulse_energy = pb / n_pixel * pulse_distance
+        pulse_en_input = pb / n_pixel_input * pulse_distance
+
         power_per_pixel = pulse_energy / (np.sqrt(2*np.pi)*laser_sigma)
+        power_per_pixel_input = pulse_en_input / (np.sqrt(2*np.pi)*laser_sigma)
 
 
     elif illum_mode=='Scanning':
@@ -118,9 +125,13 @@ def get_pre_output(params):
 
 
     power_per_pixel = pb / n_pixel
+    ppp_input = pb / n_pixel_input
+
     flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
+    flash_power_per_pixel_input = ppp_input * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
 
     pre_out['flash_ppp'] = np.round(flash_power_per_pixel, 2)
+    pre_out['flash_ppp_input'] = np.round(flash_power_per_pixel_input, 2)
 
     power_per_pixel =  float(params['pixel_power'])
 
