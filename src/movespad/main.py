@@ -66,8 +66,8 @@ def execute_main(
     params: dict,
     mc : bool
 ):
-    
-    plt.clf()
+    if mc:
+        plt.clf()
 
     las_sigma = float(params['laser_sigma'])*10**(-9)
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
