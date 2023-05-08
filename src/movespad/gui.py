@@ -190,7 +190,7 @@ def gui():
             window2.Close()
 
         elif event=='Submit':
-            centroids = main.execute_main(params=values)
+            centroids = main.execute_main(params=values, mc=False)
             if 'none' in centroids.keys():
                 pass
 
@@ -203,7 +203,7 @@ def gui():
                     [sg.Exit(auto_size_button=True)]
                 ]
 
-                window3 = sg.Window(title='Simulation results', layout=layout_3)
+                window3 = sg.Window(title='Simulation results', layout=layout_3, resizable=True, grab_anywhere=True)
                 ev_3, val_3 = window3.read()
 
                 if ev_3=='Exit' or ev_3 is None:
