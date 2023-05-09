@@ -15,7 +15,7 @@ def bkg_spectrum(times: np.ndarray, tau, rho_tgt, ff, pixel_area,
     + physical background
     + Dark Count Rate
     """
-    #TODO aggiungere filter efficiency
+
     pdf = np.ones_like(times)
 
     num = tau * rho_tgt * ff * pixel_area * z**2
@@ -25,7 +25,7 @@ def bkg_spectrum(times: np.ndarray, tau, rho_tgt, ff, pixel_area,
     return pdf
 
 
-def get_n_photons_bkg(times, bkg_spectrum, bin_width):
+def get_n_photons_bkg(times, bkg_spectrum, bin_width, dcr):
     """
     Generate mean values from a Poisson process including
     physical background and Dark Count Rate.
@@ -33,7 +33,7 @@ def get_n_photons_bkg(times, bkg_spectrum, bin_width):
     delta_t = times[bin_width]-times[0]
     
     lam_bkg = laser.get_mean_n_ph(bkg_spectrum, delta_t, bin_width)[0]
-    lam_dcr = pm.DCR * delta_t
+    lam_dcr = dcr * delta_t
 
     n_ph = np.asarray([
         np.random.poisson(lam= lam_bkg+lam_dcr) for _ in times[::bin_width]

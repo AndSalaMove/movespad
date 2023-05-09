@@ -39,7 +39,7 @@ def execute_main(
     multi_hit = int(params['multi_hit'])
 
     n_sigma_recharge = 8
-    laser_sigma = float(params['laser_sigma'])*1e-9
+    laser_sigma, dcr = float(params['laser_sigma'])*1e-9, float(params['dcr'])
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
     if illum_mode=='Flash':
@@ -85,12 +85,12 @@ def execute_main(
         print(f"Len of times: {array_len}")
     bw = 1
 
-    bkg_pow = solar.bkg_contrib(laser_l, fwhm, bkg_klux)  
+    bkg_pow = solar.bkg_contrib(laser_l, fwhm, bkg_klux)
 
     if not mc:
         print("Creating bkg events...")
     bkg_spec = bkg.bkg_spectrum(times, tau, rho_tgt, ff,
-                                pixel_area, z, f_lens, d_lens, bkg_pow )
+                                pixel_area, z, f_lens, d_lens, bkg_pow)
     if not mc:
         print("Creating laser events...")
     las_spec = laser.full_laser_spectrum(offset, time_step, n_imp, tau, rho_tgt,
@@ -105,7 +105,7 @@ def execute_main(
     n_ph_las, t_laser = laser.get_n_photons(times, las_spec, bw)
     if not mc:
         print("Extracting number of bkg photons...")
-    n_ph_bkg, t_bkg = bkg.get_n_photons_bkg(times, bkg_spec, bw)
+    n_ph_bkg, t_bkg = bkg.get_n_photons_bkg(times, bkg_spec, bw, dcr)
 
     pix = pixel.Pixel(size = pixel_size)
 

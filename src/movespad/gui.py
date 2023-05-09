@@ -3,21 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from movespad import main, pre_output
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-
 plt.style.use('Solarize_Light2')
 
-# Helper Functions
 
 def gui():
 
     sg.set_options(font=("Helvetica", 12))
- 
     sg.theme("DarkBlue15")
- 
+
     left = [
- 
+
         [sg.T("Laser specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
         [sg.T("Power per Pixel (W)", size=(28,1), justification='right', tooltip='Useful only for Scanning mode'), sg.I(key='pixel_power', default_text='2', size=(10,1))],
         [sg.T("Power Budget (W)", size=(28,1), justification='right'), sg.I(key='power_budget', default_text='18', size=(10,1))],
@@ -28,23 +23,23 @@ def gui():
         [sg.T("FOV (deg)", size=(28,1), justification='right'), sg.I(key='fov_x', default_text='30', size=(4,1)), sg.I(key='fov_y', default_text='30', size=(4,1))],
         [sg.T("Resolution (cm)", size=(28,1), justification='right'), sg.I(key='res_x', default_text='15', size=(4,1)), sg.I(key='res_y', default_text='15', size=(4,1))],
         [sg.T("Illumination mode", size=(28,1), justification='right'), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(10,1), default_value='Flash')],
- 
+
         [sg.T("")],
         [sg.T("")],
         [sg.T("")],
- 
+
         [sg.T("Optics", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
- 
+
         [sg.T("Focal length (mm)", size=(28,1), justification='right'),  sg.I(key='f_lens', default_text='20', size=(10,1))],
         [sg.T("Lens diameter (mm)", size=(28,1), justification='right'), sg.I(key='d_lens', default_text='16', size=(10,1))],
         [sg.T("Transmittance", size=(28,1), justification='right'),      sg.I(key='tau', default_text='0.90', size=(10,1))],
         [sg.T("Optical Filter FWHM (nm)", size=(28,1), justification='right'),  sg.I(key='fwhm_bkg', default_text='10', size=(10,1))],
- 
+
         [sg.T("")],
         [sg.T("")],
- 
+
     ]
- 
+
     center = [
         [sg.T("Pixel specifications", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
         [sg.T("SPADs per side", size=(28, 1), justification='right'), sg.I(key='pixel_size', default_text='3', size=(10,1))],
@@ -59,9 +54,9 @@ def gui():
         [sg.T("Crosstalk Probability (L,D)", size=(28,1), justification='right'), sg.I(key='xtalk_r', default_text='0.03', size=(4,1)), sg.I(key='xtalk_d', default_text='0.01', size=(4,1))],
         [sg.T("Dark Count Rate (cps)", size=(28,1), justification='right'), sg.I(key="dcr", default_text="6800", size=(10,1))],
         [sg.T("")],
- 
+
         [sg.T("Physical parameters", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
- 
+
         [sg.T("Range (m)", size=(28,1), justification='right'), sg.I(key="range_min", default_text="10", size=(4,1)), sg.I(key="range_max", default_text="200", size=(4,1))],
         [sg.T("Target Distance (m)", size=(28,1), justification='right'), sg.I(key="z", default_text="180", size=(10,1))],
         [sg.T("Number of pulses", size=(28,1), justification='right'), sg.I(key='n_imp', default_text='30', size=(10,1))],
@@ -69,7 +64,7 @@ def gui():
         [sg.T("Background klux", size=(28,1), justification='right'), sg.I(key="bkg_klux", default_text="120", size=(10,1))],
         [sg.T("")],
     ]
- 
+
     right = [
         [sg.T("TDC", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
         [sg.T("Measurement Resolution (cm)", size=(28,1), justification='right'), sg.I(key="spatial_resolution", default_text="10", size=(10,1))],
@@ -85,7 +80,7 @@ def gui():
         [sg.T("")],
         [sg.T("Monte Carlo Runs", size=(28,1), justification='right'), sg.I(key='mc-runs', default_text="0", size=(10,1))],
         [sg.T("")],
- 
+
         [sg.T("", size=(20,1)), sg.Button('Pre-Output', size=(10,1), button_color=())],
         [sg.T("", size=(20,1)), sg.Submit(size=(10,1))],
         [sg.T("", size=(20,1)), sg.Button('Monte Carlo', size=(10,1), button_color=('gold2', 'black'))],
@@ -94,14 +89,13 @@ def gui():
         [sg.T("")],
     ]
  
- 
     layout = [
  
         [sg.T("MOVE-X LIDAR SIMULATION v1.1.0", justification='center', size=(120,1), font=("Helvetica", 14, "bold"))],
         [sg.T("")],
         [sg.Column(left, pad=(0, 0)), sg.Column(center, pad=(0, 0)), sg.Column(right, pad=(0, 0))],
- 
- 
+
+
     ]
 
     window = sg.Window("LIDAR starter", layout=layout, resizable=True)
@@ -178,7 +172,7 @@ def gui():
                 'max': [],
                 'mean': [],
                 '10perc': [],
-                'gaus': []        
+                'gaus': []
             }
 
 
