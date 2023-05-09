@@ -180,7 +180,11 @@ def gui():
                 print(f"*********** RUN {1+run}/{n_runs} ****************")
                 centroids = main.execute_main(params=values, mc=True)
                 for key in centroids.keys():
-                    results[key].append(centroids[key])
+                    if key=='z':
+                        pass
+                    else:
+
+                        results[key].append(centroids[key])
 
             errors = {key: np.mean(results[key]) for key in results.keys()}
             plt.subplot(2,2,1)
