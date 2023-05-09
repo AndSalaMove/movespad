@@ -150,7 +150,7 @@ def execute_main(
     t_min = 2*rng_min / pm.C
     bins = np.linspace(t_min, pulse_distance, tot_n)
     hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance, multi_hit)
-    
+
     t_max = 2*range_max / pm.C
     hist_data = [h for h in hist_data if h<t_max]
     counts, bins = np.histogram(hist_data, bins=bins)
