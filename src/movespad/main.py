@@ -140,7 +140,7 @@ def execute_main(
     if not mc:
         print(f"{len(survived)} events found")
         print("Plotting results:\n**********\n\n")
-    
+
     if len(survived)==0:
         plt.show()
         return {'none': None}
@@ -163,7 +163,7 @@ def execute_main(
         pix.plot_events(times, las_spec, survived)
         fig, ax = plt.subplots()
         ax.stairs(counts, bins)
-        secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C - z, lambda x : z + 2*x/pm.C))
+        secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C , lambda x :  2*x/pm.C))
         secax.set_label("Distance [m]")
     
         plt.title(f"TOF histogram {n_imp} pulses")
