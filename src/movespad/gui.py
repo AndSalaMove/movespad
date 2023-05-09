@@ -52,7 +52,7 @@ def gui():
         [sg.T("Spad sigma (ps)", size=(28,1), justification='right'), sg.I(key="spad_j", default_text="72", size=(10,1))],
         [sg.T("After pulsing probability", size=(28,1), justification='right'), sg.I(key="after_pulsing", default_text="0.014", size=(10,1))],
         [sg.T("Crosstalk Probability (L,D)", size=(28,1), justification='right'), sg.I(key='xtalk_r', default_text='0.03', size=(4,1)), sg.I(key='xtalk_d', default_text='0.01', size=(4,1))],
-        [sg.T("Dark Count Rate (cps)", size=(28,1), justification='right'), sg.I(key="dcr", default_text="6800", size=(10,1))],
+        [sg.T("Dark Count Rate (cps)", size=(28,1), justification='right'), sg.I(key="dcr", default_text="60800", size=(10,1))],
         [sg.T("")],
 
         [sg.T("Physical parameters", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
@@ -150,10 +150,10 @@ def gui():
 
             else:
                 layout_3 = [
-                    [sg.T("Highest bin", size=(20,1), justification='right'), sg.InputText(f"{centroids['max']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.T("Histogram average", size=(20,1), justification='right'), sg.InputText(f"{centroids['mean']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.T("Top 10% average", size=(20,1), justification='right'), sg.InputText(f"{centroids['10perc']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.T("Gaussian fit", size=(20,1), justification='right'), sg.InputText(f"{centroids['gaus']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                    [sg.T("Highest bin", size=(20,1), justification='right'),         sg.InputText(f"{centroids['max']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['max']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                    [sg.T("Histogram average", size=(20,1), justification='right'),   sg.InputText(f"{centroids['mean']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['mean']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                    [sg.T("Top 10% average", size=(20,1), justification='right'),     sg.InputText(f"{centroids['10perc']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['10perc']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                    [sg.T("Gaussian fit", size=(20,1), justification='right'),        sg.InputText(f"{centroids['gaus']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['gaus']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
                     [sg.Exit(auto_size_button=True)]
                 ]
 

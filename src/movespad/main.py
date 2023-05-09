@@ -36,7 +36,7 @@ def execute_main(
     illum_mode, fwhm = params['illum_mode'], float(params['fwhm_bkg'])*1e-9
 
     pb, fps = float(params['power_budget']), float(params['fps'])
-    multi_hit = int(params['multi_hit'])
+    multi_hit, range_max = int(params['multi_hit']), float(params['range_max'])
 
     n_sigma_recharge = 8
     laser_sigma, dcr = float(params['laser_sigma'])*1e-9, float(params['dcr'])
@@ -45,7 +45,7 @@ def execute_main(
     if illum_mode=='Flash':
 
         print("Flash mode selected")
-        pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_sigma_recharge*laser_sigma)
+        pulse_distance = max(2*range_max*1.05 / pm.C, n_sigma_recharge*laser_sigma)
 
         pulse_energy = pb / n_pixel * pulse_distance
         power_per_pixel = pulse_energy / (np.sqrt(2*np.pi)*laser_sigma)
@@ -74,6 +74,8 @@ def execute_main(
 
 
     pulse_distance = np.round(pulse_distance, 10)
+    if not mc:
+        print(f"Pulse distance: {pulse_distance:.4f} s - {0.5 * pm.C * pulse_distance :.3f} m")
     offset = 2*z / pm.C
     time_step = 100e-12
     start, stop = 0, pulse_distance * n_imp
@@ -148,7 +150,9 @@ def execute_main(
     t_min = 2*rng_min / pm.C
     bins = np.linspace(t_min, pulse_distance, tot_n)
     hist_data = laser.get_hist_data([s.time for s in survived], pulse_distance, multi_hit)
-
+    
+    t_max = 2*range_max / pm.C
+    hist_data = [h for h in hist_data if h<t_max]
     counts, bins = np.histogram(hist_data, bins=bins)
 
     counts = [min(count_limit, c) for c in counts]
@@ -159,7 +163,7 @@ def execute_main(
         pix.plot_events(times, las_spec, survived)
         fig, ax = plt.subplots()
         ax.stairs(counts, bins)
-        secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C, lambda x : 2*x/pm.C))
+        secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C - z, lambda x : z + 2*x/pm.C))
         secax.set_label("Distance [m]")
     
         plt.title(f"TOF histogram {n_imp} pulses")

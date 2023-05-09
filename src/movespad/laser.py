@@ -70,7 +70,7 @@ def plot_spectrum(times, spectrum, ax, label):
     ax.plot(times, spectrum, label=label)
 
 
-def get_hist_data(times: list, clock: float, multi_hit: int):
+def get_hist_data(times: list, clock: float, multi_hit: int) -> list:
 
     if len(times)==0:
         return
@@ -122,13 +122,19 @@ def get_centroids(bins, counts, data, real_value):
     centr['max'] = 0.5 * pm.C * bin_c[np.argmax(counts)] - real_value
 
     sorted_counts, sorted_bins = zip(*sorted(zip(counts, bin_c), reverse=True))
-    chunk_10 = int(0.1*len(counts))
-    centr['10perc'] = 0.5 * pm.C * histo_avg(sorted_bins[:chunk_10], sorted_counts[:chunk_10]) - real_value
+    
+    nz_bins = [bc for bc, cn in zip(sorted_bins, sorted_counts) if cn>0]
+    nz_counts = [cn for _, cn in zip(sorted_bins, sorted_counts) if cn>0]
+    chunk_10 = max(1, int(0.1*len(nz_counts)))
+
+    centr['10perc'] = 0.5 * pm.C * histo_avg(nz_bins[:chunk_10], nz_counts[:chunk_10]) - real_value
 
     mu, sigma = stats.norm.fit(data)
     best_fit_line = stats.norm.pdf(bins, mu, sigma)
     
     centr['gaus'] = 0.5* pm.C *mu - real_value
+
+    centr['z'] = real_value
  
     return centr, best_fit_line
 
