@@ -11,6 +11,8 @@ def optimal_laser_power(params):
     """Simulate SPAD action to evaluate
     optimal laser power (6 hits out of 9)"""
 
+    if params['seed']!='':
+        np.random.seed(int(params['seed']))
     hit_counts = []
 
     time_step = 100e-12
@@ -18,7 +20,7 @@ def optimal_laser_power(params):
     n_imps = 1
     limit = 0.5e-6
 
-    for _ in trange(5, leave=False):
+    for _ in trange(250, leave=False):
         laser_spec = laser.full_laser_spectrum(
             init_offset= 1e-8,
             time_step= 100e-12,
