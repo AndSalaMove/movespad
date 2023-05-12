@@ -4,6 +4,7 @@ from time import time
 import timeit
 from movespad import laser, bkg, params as pm, pixel
 from movespad import spad, solar
+import random
 
 
 def execute_main(
@@ -13,7 +14,7 @@ def execute_main(
     if mc:
         plt.clf()
 
-    las_sigma = float(params['laser_sigma'])*10**(-9)
+    las_sigma, seed = float(params['laser_sigma'])*10**(-9), int(params['seed'])
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
     pixel_area, ff = (float(params['spad_size'])*10**(-6)*pixel_size)**2, float(params['ff'])
 
@@ -41,6 +42,10 @@ def execute_main(
     n_sigma_recharge = 8
     laser_sigma, dcr = float(params['laser_sigma'])*1e-9, float(params['dcr'])
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
+
+    if seed!='':
+        np.random.seed(seed=seed)
+        random.seed(seed)
 
     if illum_mode=='Flash':
 

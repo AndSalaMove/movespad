@@ -77,7 +77,7 @@ def gui():
         [sg.T("")],
         [sg.T("")],
         [sg.T("")],
-        [sg.T("")],
+        [sg.T("Random seed", size=(28,1), justification='right'),      sg.I(key='seed',    default_text='', size=(10,1))],
         [sg.T("Monte Carlo Runs", size=(28,1), justification='right'), sg.I(key='mc-runs', default_text="0", size=(10,1))],
         [sg.T("")],
 
