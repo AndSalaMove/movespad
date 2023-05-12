@@ -14,7 +14,7 @@ def execute_main(
     if mc:
         plt.clf()
 
-    las_sigma, seed = float(params['laser_sigma'])*10**(-9), int(params['seed'])
+    las_sigma, seed = float(params['laser_sigma'])*10**(-9), params['seed']
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
     pixel_area, ff = (float(params['spad_size'])*10**(-6)*pixel_size)**2, float(params['ff'])
 
@@ -44,8 +44,8 @@ def execute_main(
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
     if seed!='':
-        np.random.seed(seed=seed)
-        random.seed(seed)
+        np.random.seed(seed=int(seed))
+        random.seed(int(seed))
 
     if illum_mode=='Flash':
 

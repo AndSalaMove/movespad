@@ -107,7 +107,7 @@ def get_pre_output(params):
         pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
         n_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
     
-        print(f"Number of pixel hit in one shot: {n_pix_per_shot}")
+        # print(f"Number of pixel hit in one shot: {n_pix_per_shot}")
 
         n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
 
