@@ -74,7 +74,6 @@ def get_pre_output(params):
 
     n_pix_input = (int(params['h_matrix']), int(params['v_matrix']))
 
-
     n_bit_tdc, n_bit_hist = int(params['n_bit_tdc']), int(params['n_bit_hist'])
     n_pads = int(params['n_pads'])
 
@@ -84,7 +83,7 @@ def get_pre_output(params):
     n_sigma_recharge = 8
     imps_per_frame = 0
     laser_sigma = fl(params['laser_sigma'])*1e-9
-    pulse_distance = max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
+    pulse_distance = 0#max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
     pb = fl(params['power_budget'])
     n_pixel = n_pix_x * n_pix_y
     n_pixel_input  = n_pix_input[0] * n_pix_input[1]
@@ -110,7 +109,6 @@ def get_pre_output(params):
         # print(f"Number of pixel hit in one shot: {n_pix_per_shot}")
 
         n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
-
         pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
 
 
@@ -118,8 +116,9 @@ def get_pre_output(params):
         print("WARNING: You must select an illumination mode.")
         return
 
-    time_per_frame = 1 / fps - (n_pix_x * n_pix_y * n_bit_tdc * n_bit_hist) / (fl(params['clock'])*1e6*n_pads)
-    # print(f"1/fps : {1./fps}s - time per frame: {time_per_frame}s")
+    clock = fl(params['clock'])
+    
+    time_per_frame = 1 / fps - (n_pixel * n_bit_tdc * n_bit_hist) / (clock*1e6*n_pads)
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
 
     pre_out['imps_per_frame'] = imps_per_frame
