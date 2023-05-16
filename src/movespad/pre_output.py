@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from movespad import laser, pixel, params as pm
 from tqdm import trange
+from copy import deepcopy
 
 def fl(x: str):
     return float(x)
@@ -55,102 +56,186 @@ def optimal_laser_power(params):
 
 
 def get_pre_output(params):
+
     """
     Compute average hit count, flash power per pixel,
     matrix dimension to cover all FOV, N bit for TDC
     """
-    pre_out = {}
 
-    # Optimal laser power (6 hits out of 9)
-    hit_counts  = optimal_laser_power(params)
-    pre_out['hit_counts'] = hit_counts
-
-    # Matrix size
-    scene_x = fl(params['range_max']) * np.tan(np.deg2rad(fl(params['fov_x'])) / 2)
-    scene_y = fl(params['range_max']) * np.tan(np.deg2rad(fl(params['fov_y'])) / 2)
-
-    n_pix_x = int(np.ceil(scene_x / (fl(params['res_x'])/100)))
-    n_pix_y = int(np.ceil(scene_y / (fl(params['res_y'])/100)))
-
-    n_pix_input = (int(params['h_matrix']), int(params['v_matrix']))
-
-    n_bit_tdc, n_bit_hist = int(params['n_bit_tdc_pre']), int(params['n_bit_hist_pre'])
-    n_pads = int(params['n_pads'])
-
-    pre_out['n_pix_x'], pre_out['n_pix_y'] = n_pix_x, n_pix_y
-
-    illum_mode, fps = params['illum_mode'], fl(params['fps'])
-    n_sigma_recharge = 8
-    imps_per_frame = 0
-    laser_sigma = fl(params['laser_sigma'])*1e-9
-    pulse_distance = 0#max(2*fl(params['range_max'])*1.05 / pm.C, 8*laser_sigma*n_pix_y)
-    pb = fl(params['power_budget'])
-    n_pixel = n_pix_x * n_pix_y
-    n_pixel_input  = n_pix_input[0] * n_pix_input[1]
-
-    if illum_mode=='Flash':
-        
-        pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_sigma_recharge*laser_sigma)
-        pulse_energy = pb / n_pixel * pulse_distance
-        #pulse_en_input = pb / n_pixel_input * pulse_distance
-
-        power_per_pixel = pulse_energy / (np.sqrt(2*np.pi)*laser_sigma)
-        #power_per_pixel_input = pulse_en_input / (np.sqrt(2*np.pi)*laser_sigma)
-
-
-    elif illum_mode=='Scanning':
-
-        power_per_pixel =  float(params['pixel_power'])
-        pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
-        n_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
-
-        n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
-        pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
-
-
-    else:
-        print("WARNING: You must select an illumination mode.")
-        return
-
-    clock = fl(params['clock'])
-
-    time_per_frame = 1 / fps - (n_pixel * n_bit_tdc * n_bit_hist) / (clock*1e6*n_pads)
-    imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
-
-    pre_out['imps_per_frame'] = imps_per_frame
-
-    power_per_pixel = pb / n_pixel
-    ppp_input = pb / n_pixel_input
-
-    flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
-    flash_power_per_pixel_input = ppp_input * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
-
-    pre_out['flash_ppp'] = np.round(flash_power_per_pixel, 2)
-    pre_out['flash_ppp_input'] = np.round(flash_power_per_pixel_input, 2)
-
-    power_per_pixel =  float(params['pixel_power'])
-
-    if power_per_pixel >pb:
-        print(f"ATTENZIONE! Power per pixel maggiore del power budget totale.")
-    pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
-    n_pix_per_shot = int(np.floor(8 * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
-    
-    pre_out['n_pix_per_shot'] = n_pix_per_shot
-
-    # N bits for tdc
-
-    t_max = 2*fl(params['range_max'])/pm.C
-    t_min = 2*fl(params['range_min'])/pm.C
-
-    histo_width = t_max - t_min
-    bin_width = 0.01*fl(params['spatial_resolution']) / pm.C
-    n_bins = np.ceil(histo_width/bin_width)
-    n_bit = np.ceil(np.log2(n_bins))
-
-    pre_out['n_bit_tdc'] = n_bit
+    pre_out = {
+        'flash_mn': get_pre_output_flash_fix_mn(deepcopy(params)),
+        'flash_fov': get_pre_output_flash_fix_fov(deepcopy(params)),
+        'scanning_k': get_pre_output_scan_fix_k(deepcopy(params)),
+        'scanning_Pp': get_pre_output_scan_fix_p(deepcopy(params))
+    }
 
     return pre_out
 
 
-if __name__ == '__main__':
-    pass
+def get_pre_output_flash_fix_mn(params):
+    """Matrix size is fixed (given by input). 
+    Calculate the FOV"""
+
+    n_sigma_recharge = int(params['n_sigma_recharge'])
+    res_x, res_y = fl(params['res_x'])/100, fl(params['res_y'])/100
+    range_max, laser_sigma = fl(params['range_max']), fl(params['laser_sigma'])*1e-9
+    n_x, n_y = int(params['h_matrix']), int(params['v_matrix'])
+    pb, clock = fl(params['power_budget']), fl(params['clock'])*1e6
+    fps, n_pads = int(params['fps']), int(params['n_pads'])
+    n_bit_tdc, n_bit_hist = int(params['n_bit_tdc_pre']), int(params['n_bit_hist_pre'])
+
+    fov_x, fov_y = np.rad2deg(2*np.arctan(n_x * res_x / range_max)), np.rad2deg(2*np.arctan(n_y * res_y / range_max))
+    fov_x, fov_y = np.round(fov_x, 2), np.round(fov_y, 2)
+    pulse_distance = max(2*range_max*1.05 / pm.C, n_sigma_recharge*laser_sigma)
+    power_per_pixel = pb / (n_x * n_y)
+    flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
+    laser_peak_power = flash_power_per_pixel * n_x * n_y
+
+    time_per_frame = 1 / fps - (n_x * n_y * n_bit_tdc * n_bit_hist) / (clock*n_pads)
+    imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
+
+    params['pixel_power'] = flash_power_per_pixel
+    hit_count = optimal_laser_power(params)
+
+    pre_outs = {
+        'fov': (fov_x, fov_y),
+        'matrix_size': (n_x, n_y),
+        'Pp': flash_power_per_pixel,
+        'tot_peak': laser_peak_power,
+        'n_imps': imps_per_frame,
+        'hit_count' : hit_count
+    }
+
+    return pre_outs
+
+
+def get_pre_output_flash_fix_fov(params):
+    """FOV_x, FOV_y are fixed. Calculate flash matrix size
+    and everything that follows."""
+
+    n_sigma_recharge = int(params['n_sigma_recharge'])
+    res_x, res_y = fl(params['res_x'])/100, fl(params['res_y'])/100
+    range_max, laser_sigma = fl(params['range_max']), fl(params['laser_sigma'])*1e-9
+    fov_x, fov_y = float(params['fov_x']), float(params['fov_y'])
+    pb, clock = fl(params['power_budget']), fl(params['clock'])*1e6
+    fps, n_pads = int(params['fps']), int(params['n_pads'])
+    n_bit_tdc, n_bit_hist = int(params['n_bit_tdc_pre']), int(params['n_bit_hist_pre'])
+
+    n_x = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_x)) / res_x)))
+    n_y = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_y)) / res_y)))
+
+    pulse_distance = max(2*range_max*1.05 / pm.C, n_sigma_recharge*laser_sigma)
+    power_per_pixel = pb / (n_x * n_y)
+    flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
+    laser_peak_power = flash_power_per_pixel * n_x * n_y
+
+    time_per_frame = 1 / fps - (n_x * n_y * n_bit_tdc * n_bit_hist) / (clock*n_pads)
+    imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
+
+    params['pixel_power'] = flash_power_per_pixel
+    hit_count = optimal_laser_power(params)
+
+    pre_outs = {
+        'fov': (fov_x, fov_y),
+        'matrix_size': (n_x, n_y),
+        'Pp': flash_power_per_pixel,
+        'tot_peak': laser_peak_power,
+        'n_imps': imps_per_frame,
+        'hit_count' : hit_count
+    }
+
+    return pre_outs
+
+
+def get_pre_output_scan_fix_k(params):
+    """Scanning mode. We fix k, which is the number of pixels
+    that can be hit with a single shot"""
+
+    n_sigma_recharge = int(params['n_sigma_recharge'])
+    fov_x, fov_y = fl(params['fov_x']), fl(params['fov_y'])
+    res_x, res_y = fl(params['res_x'])/100, fl(params['res_y'])/100
+    range_max, laser_sigma = fl(params['range_max']), fl(params['laser_sigma'])*1e-9
+    n_x, n_y = fl(params['h_matrix']), fl(params['v_matrix'])
+    pb, clock = fl(params['power_budget']), fl(params['clock'])*1e6
+    fps, n_pads = int(params['fps']), int(params['n_pads'])
+    n_bit_tdc, n_bit_hist = int(params['n_bit_tdc_pre']), int(params['n_bit_hist_pre'])
+    k_pix = int(params['k_pix'])
+
+    power_per_pixel = n_sigma_recharge * pb / (np.sqrt(2*np.pi) * k_pix)
+
+    n_x_tot = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_x)) / res_x)))
+    n_y_tot = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_y)) / res_y)))
+
+    n_matrices = int(np.ceil(n_x_tot/n_x) * np.ceil(n_y_tot/n_y))
+
+    pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
+    k_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
+    n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
+    pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
+
+    clock = fl(params['clock'])*1e6
+
+    time_per_frame = 1 / fps - (n_x * n_y * n_matrices * n_bit_tdc * n_bit_hist) / (clock*n_pads)
+    imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
+
+    params['pixel_power'] = power_per_pixel
+    hit_count = optimal_laser_power(params)
+
+    pre_outs = {
+
+        'n_pix_per_shot': k_pix_per_shot,
+        'power_per_pixel' : power_per_pixel,
+        'n_matrices': n_matrices,
+        'n_shots': n_shots,
+        'tot_peak': k_pix_per_shot * power_per_pixel,
+        'hit_count': hit_count,
+        'n_imps': imps_per_frame
+    }
+
+    return pre_outs
+
+
+def get_pre_output_scan_fix_p(params):
+    """Scanning mode. We fix the power per pixel and the power budget,
+    thus calculating the number of pixel that can be covered with one shot
+    """
+
+    n_sigma_recharge = int(params['n_sigma_recharge'])
+    fov_x, fov_y = fl(params['fov_x']), fl(params['fov_y'])
+    res_x, res_y = fl(params['res_x'])/100, fl(params['res_y'])/100
+    range_max, laser_sigma = fl(params['range_max']), fl(params['laser_sigma'])*1e-9
+    n_x, n_y = fl(params['h_matrix']), fl(params['v_matrix'])
+    pb, clock = fl(params['power_budget']), fl(params['clock'])*1e6
+    fps, n_pads = int(params['fps']), int(params['n_pads'])
+    n_bit_tdc, n_bit_hist = int(params['n_bit_tdc_pre']), int(params['n_bit_hist_pre'])
+
+    # calcolare quante volte il 64x64 ci sta nel 358x358
+    n_x_tot = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_x)) / res_x)))
+    n_y_tot = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_y)) / res_y)))
+
+    n_matrices = int(np.ceil(n_x_tot/n_x) * np.ceil(n_y_tot/n_y))
+
+    power_per_pixel =  float(params['pixel_power'])
+    k_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
+    n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
+    pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
+
+    clock = fl(params['clock'])*1e6
+
+    time_per_frame = 1 / fps - (n_x * n_y * n_matrices * n_bit_tdc * n_bit_hist) / (clock*n_pads)
+    imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
+
+    hit_count = optimal_laser_power(params)
+
+    pre_outs = {
+
+        'n_pix_per_shot': k_pix_per_shot,
+        'power_per_pixel' : power_per_pixel,
+        'n_matrices': n_matrices,
+        'n_shots': n_shots,
+        'tot_peak': k_pix_per_shot * power_per_pixel,
+        'hit_count': hit_count,
+        'n_imps': imps_per_frame
+    }
+
+    return pre_outs

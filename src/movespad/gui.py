@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
 import numpy as np
-from movespad import main, pre_output
+from movespad import main, pre_output, tooltips as tt
+from movespad import __version__ as VERSION
 
 plt.style.use('Solarize_Light2')
 
@@ -23,8 +24,7 @@ def gui():
         [sg.T("FOV (deg)", size=(28,1), justification='right'), sg.I(key='fov_x', default_text='30', size=(4,1)), sg.I(key='fov_y', default_text='30', size=(4,1))],
         [sg.T("Resolution (cm)", size=(28,1), justification='right'), sg.I(key='res_x', default_text='15', size=(4,1)), sg.I(key='res_y', default_text='15', size=(4,1))],
         [sg.T("Illumination mode", size=(28,1), justification='right'), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(10,1), default_value='Flash')],
-
-        [sg.T("")],
+        [sg.T("N pixel per shot", size=(28,1), justification='right'), sg.I(key='k_pix', default_text='100', size=(10,1))],
         [sg.T("")],
         [sg.T("")],
 
@@ -70,11 +70,11 @@ def gui():
         [sg.T("Measurement Resolution (cm)", size=(28,1), justification='right'), sg.I(key="spatial_resolution", default_text="10", size=(10,1))],
         [sg.T("TDC sigma (ps)", size=(28,1), justification='right'), sg.I(key='tdc_j', default_text='100', size=(10,1))],
         [sg.T("N bit (TDCxHIST)", size=(28,1), justification='right'), sg.I(key='n_bit_tdc', default_text='12', size=(3,1)), sg.T("x"), sg.I(key='n_bit_hist', default_text='5', size=(3,1))],
-        [sg.T("Effective N bit", size=(28,1), justification='right'), sg.I(key='n_bit_tdc_pre', default_text='6', size=(3,1)), sg.T("x"), sg.I(key='n_bit_hist_pre', default_text='3', size=(3,1))],
+        [sg.T("N bit HIST Out (x,y)", size=(28,1), justification='right'), sg.I(key='n_bit_tdc_pre', default_text='6', size=(3,1)), sg.T("x"), sg.I(key='n_bit_hist_pre', default_text='3', size=(3,1))],
         [sg.T("Clock frequency (MHz)", size=(28,1), justification='right'), sg.I(key='clock', default_text='100', size=(10,1))],
         [sg.T("Number of pads", size=(28,1), justification='right'), sg.I(key='n_pads', default_text='1', size=(10,1))],
         [sg.T("Multi hit", size=(28,1), justification='right'), sg.I(key="multi_hit", default_text="1", size=(10,1))],
-        [sg.T("")],
+        [sg.T("N sigma recharge", size=(28,1), justification='right'), sg.I(key="n_sigma_recharge", default_text="8", size=(10,1))],
         [sg.T("")],
         [sg.T("")],
         [sg.T("Random seed", size=(28,1), justification='right'),      sg.I(key='seed',    default_text='', size=(10,1))],
@@ -84,14 +84,14 @@ def gui():
         [sg.T("", size=(20,1)), sg.Button('Pre-Output', size=(10,1), button_color=())],
         [sg.T("", size=(20,1)), sg.Submit(size=(10,1))],
         [sg.T("", size=(20,1)), sg.Button('Monte Carlo', size=(10,1), button_color=('gold2', 'black'))],
-        [sg.T("", size=(20,1)), sg.Cancel(size=(10,1), button_color=('gainsboro', 'indianred'))],
+        [sg.T("", size=(20,1)), sg.Cancel(size=(10,1), button_color=('black', 'indianred'))],
 
         [sg.T("")],
     ]
- 
+
     layout = [
  
-        [sg.T("MOVE-X LIDAR SIMULATION v1.1.0", justification='center', size=(120,1), font=("Helvetica", 14, "bold"))],
+        [sg.T(f"MOVE-X LIDAR SIMULATION v{VERSION}", size=(120,1), justification='center', font=("Helvetica", 14, "bold"))],
         [sg.T("")],
         [sg.Column(left, pad=(0, 0)), sg.Column(center, pad=(0, 0)), sg.Column(right, pad=(0, 0))],
 
@@ -109,34 +109,66 @@ def gui():
         elif event=='Pre-Output':
             outs = pre_output.get_pre_output(params=values)
 
-            hitcount_tip = """
-            Average number of SPADs hit for a single laser pulse.
-            Compare this number with the coincidence threshold and,
-            if necessary, change the Power per Pixel parameter.
-            """
 
-            matrix_tt = """Matrix dimension given FOV, resolution and maximum range to perform a flash"""
-            ppp = """
-            Power per pixel assuming flash mode. Obtained by the
-            total power budget and number of pixel in input"""
+            mn = outs['flash_mn']
+            col1 = [
+                [sg.Text("FLASH with fixed input matrix", justification='center', size=(40,1), font=("Helvetica", 14, "bold"))],
+                [sg.Text("")],
+                [sg.Text("Matrix size:", justification='right', size=(16,1)), sg.Text(f"{mn['matrix_size']}")],
+                [sg.Text("FOV (deg):", justification='right', size=(16,1)), sg.Text(f"{mn['fov']}")],
+                [sg.Text("Peak laser power (W):", justification='right', size=(16,1)), sg.Text(f"{mn['tot_peak']:.2f}")],
+                [sg.Text("Power per pixel (W):", justification='right', size=(16,1)), sg.Text(f"{mn['Pp']:.2f}")],
+                [sg.Text("N pulses per frame:", justification='right', size=(16,1)), sg.Text(f"{mn['n_imps']}")],
+                [sg.Text("Average hit count:", justification='right', size=(16,1)), sg.Text(f"{mn['hit_count']:.2f}")],
+                [sg.Text("")]
+            ]
 
-            npix_tt = """
-            Number of pixel that can be reached by the laser (assuming Scanning mode)
-            with each shot. This count is obtained from the power budget and the power per pixel"""
+            fv = outs['flash_fov']
+            col2 = [
+                [sg.Text("FLASH with fixed FOV", justification='center', size=(40,1), font=("Helvetica", 14, "bold"))],
+                [sg.Text("")],
+                [sg.Text(f"Matrix size:", justification='right', size=(16,1)), sg.Text(f"{fv['matrix_size']}")],
+                [sg.Text(f"FOV (deg):", justification='right', size=(16,1)), sg.Text(f"{fv['fov']}")],
+                [sg.Text(f"Peak laser power (W):", justification='right', size=(16,1)), sg.Text(f"{fv['tot_peak']:.2f}")],
+                [sg.Text(f"Power per pixel (W):", justification='right', size=(16,1)), sg.Text(f"{fv['Pp']:.2f}")],
+                [sg.Text(f"N pulses per frame:", justification='right', size=(16,1)), sg.Text(f"{fv['n_imps']}")],
+                [sg.Text(f"Average hit count:", justification='right', size=(16,1)), sg.Text(f"{fv['hit_count']:.2f}")],
+                [sg.Text("")]
+            ]
 
-            nbit = """Number of bits needed by the TDC."""
+            pp = outs['scanning_Pp']
+
+            col3 = [
+                [sg.Text("SCANNING with fixed power per pixel", justification='center', size=(40,1),  font=("Helvetica", 14, "bold"))],
+                [sg.Text("")],
+                [sg.Text(f"Power per pixel:", justification='right', size=(16,1)), sg.Text(f"{pp['power_per_pixel']:.2f}")],
+                [sg.Text(f"N pixel per shot:", justification='right', size=(16,1)), sg.Text(f"{pp['n_pix_per_shot']:.2f}")],
+                [sg.Text(f"N shots to cover matrix:", justification='right', size=(16,1)), sg.Text(f"{pp['n_shots']}")],
+                [sg.Text(f"N matrices to cover FOV:", justification='right', size=(16,1)), sg.Text(f"{pp['n_matrices']}")],
+ 
+                [sg.Text(f"N pulses per frame:", justification='right', size=(16,1)), sg.Text(f"{pp['n_imps']}")],
+                [sg.Text(f"Average hit count:", justification='right', size=(16,1)), sg.Text(f"{pp['hit_count']}")]
+            ]
+
+            kp = outs['scanning_k']
+
+            col4 = [
+                [sg.Text("SCANNING with fixed power per pixel", justification='center', size=(40,1),  font=("Helvetica", 14, "bold"))],
+                [sg.Text("")],
+                [sg.Text(f"Power per pixel:", justification='right', size=(16,1)), sg.Text(f"{kp['power_per_pixel']:.2f}")],
+                [sg.Text(f"N pixel per shot:", justification='right', size=(16,1)), sg.Text(f"{kp['n_pix_per_shot']:.2f}")],
+                [sg.Text(f"N shots to cover matrix:", justification='right', size=(16,1)), sg.Text(f"{kp['n_shots']}")],
+                [sg.Text(f"N matrices to cover FOV:", justification='right', size=(16,1)), sg.Text(f"{kp['n_matrices']}")],
+                [sg.Text(f"N pulses per frame:", justification='right', size=(16,1)), sg.Text(f"{kp['n_imps']}")],
+                [sg.Text(f"Average hit count:", justification='right', size=(16,1)), sg.Text(f"{kp['hit_count']}")]
+            ]
 
             layout_2 = [
-
-            [sg.T("Pre-Output Values", justification='center', size=(48,1), font=("Helvetica", 12, "bold"))],
-            [sg.T("Average hit count", size=(32,1), justification='right', tooltip=hitcount_tip), sg.InputText(outs['hit_counts'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("[FLASH] Power per pixel (W)", size=(32,1), justification='right', tooltip=ppp), sg.InputText(outs['flash_ppp'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("[FLASH] Power per pixel (input matrix, W)", size=(32,1), justification='right', tooltip=ppp), sg.InputText(outs['flash_ppp_input'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("[SCANNING] N pixel per shot", size=(32,1), justification='right', tooltip=npix_tt), sg.InputText(outs['n_pix_per_shot'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("Number of pulses per frame", size=(32,1), justification='right'), sg.InputText(outs['imps_per_frame'], size=(16,1), use_readonly_for_disable=True)],
-            [sg.T("Flash Matrix", size=(32,1), justification='right', tooltip=matrix_tt), sg.InputText(outs['n_pix_x'], size=(7,1), use_readonly_for_disable=True),sg.InputText(outs['n_pix_y'], size=(7,1), use_readonly_for_disable=True)],
-            [sg.T("Nbit_TDC", size=(32,1), justification='right'), sg.InputText(outs['n_bit_tdc'], size=(16,1), use_readonly_for_disable=True)]
-
+                [sg.T("PRE OUTPUT VALUES", justification='center', size=(70,1), font=("Helvetica", 16, "bold"))],
+                [sg.HorizontalSeparator(color='#fcff33')], 
+                [sg.Column(col1, pad=(0, 0)),sg.VerticalSeparator('#fcff33'), sg.Column(col2, pad=(0, 0))],
+                [sg.HorizontalSeparator('#fcff33', pad=(0,0))],
+                [sg.Column(col3, pad=(0, 0)),sg.VerticalSeparator('#fcff33'), sg.Column(col4, pad=(0, 0))]
             ]
             window2 = sg.Window('Second Window', location=(400,200)).Layout(layout_2)
 
