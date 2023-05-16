@@ -39,7 +39,7 @@ def execute_main(
     pb, fps = float(params['power_budget']), float(params['fps'])
     multi_hit, range_max = int(params['multi_hit']), float(params['range_max'])
 
-    n_sigma_recharge = 8
+    n_sigma_recharge = int(params['n_sigma_recharge'])
     laser_sigma, dcr = float(params['laser_sigma'])*1e-9, float(params['dcr'])
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
