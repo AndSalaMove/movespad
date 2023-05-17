@@ -65,7 +65,6 @@ def get_pre_output(params):
     f_lens = 0.1 * fl(params['range_max']) * fl(params['spad_size']) * int(params['pixel_size']) / fl(params['res_x'])
     d_lens = f_lens / float(params['f_number'])
 
-    print(f_lens, d_lens)
     params['f_lens'] = f_lens
     params['d_lens'] = d_lens
 

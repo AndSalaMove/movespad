@@ -57,7 +57,7 @@ def gui():
 
         [sg.T("Physical parameters", justification='center', size=(40,1), font=("Helvetica", 12, "bold"))],
 
-        [sg.T("Range (m)", size=(28,1), justification='right', text_color='tan3'), sg.I(key="range_min", default_text="10", size=(4,1)), sg.I(key="range_max", default_text="200", size=(4,1))],
+        [sg.T("Range (m)", size=(28,1), justification='right'), sg.I(key="range_min", default_text="10", size=(4,1)), sg.I(key="range_max", default_text="200", size=(4,1))],
         [sg.T("Target Distance (m)", size=(28,1), justification='right'), sg.I(key="z", default_text="180", size=(10,1))],
         [sg.T("Number of pulses", size=(28,1), justification='right', tooltip=tt.n_pulses), sg.I(key='n_imp', default_text='30', size=(10,1))],
         [sg.T("Target reflectivity", size=(28,1), justification='right'), sg.I(key='rho_tgt', default_text='0.2', size=(10,1))],

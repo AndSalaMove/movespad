@@ -16,7 +16,7 @@ def execute_main(
 
     las_sigma, seed = float(params['laser_sigma'])*10**(-9), params['seed']
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
-    pixel_area, ff = (float(params['spad_size'])*10**(-6)*pixel_size)**2, float(params['ff'])
+    pixel_area, ff = (float(params['spad_size'])*1e-6*pixel_size)**2, float(params['ff'])
 
     theta_h, theta_v = float(params['theta_h'])/1000, float(params['theta_v'])/1000
 
@@ -24,7 +24,7 @@ def execute_main(
     res_x, res_y  = float(params['res_x'])/100, float(params['res_y'])/100
     tau, bkg_klux = float(params['tau']), float(params['bkg_klux'])
     laser_l, after_p = float(params['wavelength'])*1e-9, float(params['after_pulsing'])
-
+    spad_size = float(params['spad_size'])*1e-6
     t_dead, thr = float(params['t_dead'])*10**-9, int(params['coinc_thr'])
 
     n_imp, z = int(params['n_imp']), float(params['z'])
@@ -44,8 +44,11 @@ def execute_main(
     laser_sigma, dcr = float(params['laser_sigma'])*1e-9, float(params['dcr'])
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
-    f_lens = 0.1 * range_max * float(params['spad_size']) * pixel_size / res_x
+    f_lens = range_max * spad_size * pixel_size / res_x
     d_lens = f_lens / float(params['f_number'])
+
+    if not mc:
+        print(f"Lens parameters: {f_lens:.5f} / {d_lens:.5f}")
 
     if seed!='':
         np.random.seed(seed=int(seed))
