@@ -23,6 +23,7 @@ def gui():
         [sg.T("Frames per second", size=(28,1), justification='right', text_color='tan3'), sg.I(key="fps", default_text='10', size=(10,1))],
         [sg.T("FOV (deg)", size=(28,1), justification='right', text_color='tan3'), sg.I(key='fov_x', default_text='30', size=(4,1)), sg.I(key='fov_y', default_text='30', size=(4,1))],
         [sg.T("Resolution (cm)", size=(28,1), justification='right'), sg.I(key='res_x', default_text='15', size=(3,1)), sg.T("x"), sg.I(key='res_y', default_text='15', size=(3,1))],
+
         [sg.T("Illumination mode", size=(28,1), justification='right', tooltip=tt.ill_mode), sg.Combo(['Flash', 'Scanning'], key='illum_mode', size=(10,1), default_value='Flash')],
         [sg.T("N pixel per shot", size=(28,1), justification='right', text_color='tan3', tooltip=tt.k_pix), sg.I(key='k_pix', default_text='100', size=(10,1))],
         [sg.T("")],
@@ -108,7 +109,6 @@ def gui():
         elif event=='Pre-Output':
             outs = pre_output.get_pre_output(params=values)
 
-
             mn = outs['flash_mn']
             col1 = [
                 [sg.Text("FLASH with fixed input matrix", justification='center', size=(40,1), tooltip=tt.fix_mn, font=("Helvetica", 14, "bold"))],
@@ -144,7 +144,9 @@ def gui():
                 [sg.Text(f"N pixel per shot:", justification='right', size=(20,1)), sg.Text(f"{pp['n_pix_per_shot']:.2f}")],
                 [sg.Text(f"N shots to cover matrix:", justification='right', size=(20,1)), sg.Text(f"{pp['n_shots']}")],
                 [sg.Text(f"N matrices to cover FOV:", justification='right', size=(20,1)), sg.Text(f"{pp['n_matrices']}")],
+
                 [sg.Text(f"Tot laser power (W):", justification='right', size=(20,1)), sg.Text(f"{pp['tot_peak']:.2f}")],
+
                 [sg.Text(f"N pulses per frame:", justification='right', size=(20,1)), sg.Text(f"{pp['n_imps']}")],
                 [sg.Text(f"Average hit count:", justification='right', size=(20,1)), sg.Text(f"{pp['hit_count']}")],
                 [sg.Text("")]
@@ -154,12 +156,14 @@ def gui():
 
             col4 = [
                 [sg.Text("SCANNING with fixed N pixel per shot", justification='center', size=(40,1), tooltip=tt.scan2,  font=("Helvetica", 14, "bold"))],
+
                 [sg.Text("")],
                 [sg.Text(f"Power per pixel:", justification='right', size=(20,1)), sg.Text(f"{kp['power_per_pixel']:.2f}")],
                 [sg.Text(f"N pixel per shot:", justification='right', size=(20,1)), sg.Text(f"{kp['n_pix_per_shot']:.2f}")],
                 [sg.Text(f"N shots to cover matrix:", justification='right', size=(20,1)), sg.Text(f"{kp['n_shots']}")],
                 [sg.Text(f"N matrices to cover FOV:", justification='right', size=(20,1)), sg.Text(f"{kp['n_matrices']}")],
                 [sg.Text(f"Tot laser power (W):", justification='right', size=(20,1)), sg.Text(f"{kp['tot_peak']:.2f}")],
+
                 [sg.Text(f"N pulses per frame:", justification='right', size=(20,1)), sg.Text(f"{kp['n_imps']}")],
                 [sg.Text(f"Average hit count:", justification='right', size=(20,1)), sg.Text(f"{kp['hit_count']}")],
                 [sg.Text("")]
@@ -168,6 +172,7 @@ def gui():
             layout_2 = [
                 [sg.T("PRE OUTPUT VALUES", justification='center', size=(75,1), font=("Helvetica", 16, "bold"))],
                 [sg.T(f"Focal length: {outs['f_lens']:.2f} mm     Lens diameter: {outs['d_lens']:.2f} mm", justification='center', size=(110,1))],
+
                 [sg.T("")],
                 [sg.Column(col1, pad=(0, 0)),sg.VerticalSeparator('#fcff33'), sg.Column(col2, pad=(0, 0))],
                 [sg.HorizontalSeparator('#fcff33', pad=(0,0))],

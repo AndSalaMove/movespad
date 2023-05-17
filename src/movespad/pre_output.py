@@ -61,7 +61,7 @@ def get_pre_output(params):
     Compute average hit count, flash power per pixel,
     matrix dimension to cover all FOV, N bit for TDC
     """
-
+ 
     f_lens = 0.1 * fl(params['range_max']) * fl(params['spad_size']) * int(params['pixel_size']) / fl(params['res_x'])
     d_lens = f_lens / float(params['f_number'])
 
@@ -132,6 +132,7 @@ def get_pre_output_flash_fix_fov(params):
 
     n_x = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_x)) / res_x)))
     n_y = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_y)) / res_y)))
+
 
     pulse_distance = max(2*range_max*1.05 / pm.C, n_sigma_recharge*laser_sigma)
     power_per_pixel = pb / (n_x * n_y)
