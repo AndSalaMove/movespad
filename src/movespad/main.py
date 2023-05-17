@@ -20,7 +20,8 @@ def execute_main(
 
     theta_h, theta_v = float(params['theta_h'])/1000, float(params['theta_v'])/1000
 
-    f_lens, d_lens = float(params['f_lens'])/1000, float(params['d_lens'])/1000
+    f_number = float(params['f_number'])
+    res_x, res_y  = float(params['res_x'])/100, float(params['res_y'])/100
     tau, bkg_klux = float(params['tau']), float(params['bkg_klux'])
     laser_l, after_p = float(params['wavelength'])*1e-9, float(params['after_pulsing'])
 
@@ -43,6 +44,9 @@ def execute_main(
     laser_sigma, dcr = float(params['laser_sigma'])*1e-9, float(params['dcr'])
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
+    f_lens = 0.1 * range_max * float(params['spad_size']) * pixel_size / res_x
+    d_lens = f_lens / float(params['f_number'])
+
     if seed!='':
         np.random.seed(seed=int(seed))
         random.seed(int(seed))
@@ -63,29 +67,22 @@ def execute_main(
         power_per_pixel =  float(params['pixel_power'])
         pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
         n_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
-    
-        print(f"Number of pixel hit in one shot: {n_pix_per_shot}")
 
         n_shots = int(np.ceil(n_pixel / n_pix_per_shot))
-
         pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
-        imps_pre_frame = np.floor(pulse_distance * fps)
 
     else:
 
         print("You must specify an illumination mode.")
-        imps_per_frame = 0
         return
-
 
     pulse_distance = np.round(pulse_distance, 10)
     if not mc:
-        print(f"Pulse distance: {pulse_distance:.4f} s - {0.5 * pm.C * pulse_distance :.3f} m")
+        print(f"Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
     offset = 2*z / pm.C
     time_step = 100e-12
     start, stop = 0, pulse_distance * n_imp
     n_steps = int((stop-start)/time_step)
-    # print(f"n steps: {(stop-start)/time_step} --> {n_steps}")
     times = np.linspace(start, stop, n_steps)
     array_len = len(times)
     if not mc:
