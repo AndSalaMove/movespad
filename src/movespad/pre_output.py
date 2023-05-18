@@ -177,14 +177,13 @@ def get_pre_output_scan_fix_k(params):
 
     n_matrices = int(np.ceil(n_x_tot/n_x) * np.ceil(n_y_tot/n_y))
 
-    pulse_energy = power_per_pixel * np.sqrt(2*np.pi) * laser_sigma
     k_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
     n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
     pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
-
+    print(f"[FIX p]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
     clock = fl(params['clock'])*1e6
 
-    time_per_frame = 1 / fps - (n_x * n_y * n_matrices * n_bit_tdc * n_bit_hist) / (clock*n_pads)
+    time_per_frame = 1 /(n_matrices *  fps) - (n_x * n_y * n_bit_tdc * n_bit_hist) / (clock*n_pads)
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
 
     params['pixel_power'] = power_per_pixel
@@ -229,9 +228,11 @@ def get_pre_output_scan_fix_p(params):
     n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
     pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
 
+    print(f"[FIX k]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
+
     clock = fl(params['clock'])*1e6
 
-    time_per_frame = 1 / fps - (n_x * n_y * n_matrices * n_bit_tdc * n_bit_hist) / (clock*n_pads)
+    time_per_frame = 1 /(n_matrices *  fps) - (n_x * n_y * n_bit_tdc * n_bit_hist) / (clock*n_pads)
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
 
     hit_count = optimal_laser_power(params)
