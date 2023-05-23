@@ -20,7 +20,7 @@ def execute_main(
 
     theta_h, theta_v = float(params['theta_h'])/1000, float(params['theta_v'])/1000
 
-    f_number = float(params['f_number'])
+    f_number, time_step = float(params['f_number']), float(params['time_step'])*1e-12
     res_x, res_y  = float(params['res_x'])/100, float(params['res_y'])/100
     tau, bkg_klux = float(params['tau']), float(params['bkg_klux'])
     laser_l, after_p = float(params['wavelength'])*1e-9, float(params['after_pulsing'])
@@ -45,7 +45,7 @@ def execute_main(
     n_pixel = float(params['h_matrix'])*float(params['v_matrix'])
 
     f_lens = range_max * spad_size * pixel_size / res_x
-    d_lens = f_lens / float(params['f_number'])
+    d_lens = f_lens / f_number
 
     if not mc:
         print(f"Lens parameters: {f_lens:.5f} / {d_lens:.5f}")
@@ -83,7 +83,6 @@ def execute_main(
     if not mc:
         print(f"Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
     offset = 2*z / pm.C
-    time_step = 100e-12
     start, stop = 0, pulse_distance * n_imp
     n_steps = int((stop-start)/time_step)
     times = np.linspace(start, stop, n_steps)

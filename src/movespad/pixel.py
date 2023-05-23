@@ -155,7 +155,7 @@ class Pixel():
         for i in trange(len(self.timestamps), leave=False):
             self.timestamps[i].timestamps += np.random.normal(0, jit_sigma,
                                                 size=len(self.timestamps[i].timestamps))
-            
+
 
     def plot_events(self, times, las_spec,
                     survived=None):

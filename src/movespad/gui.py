@@ -76,7 +76,7 @@ def gui():
         [sg.T("Multi hit", size=(28,1), justification='right', tooltip=tt.multi_hit), sg.I(key="multi_hit", default_text="1", size=(10,1))],
         [sg.T("N sigma recharge", size=(28,1), justification='right', tooltip=tt.n_sig), sg.I(key="n_sigma_recharge", default_text="8", size=(10,1))],
         [sg.T("")],
-        [sg.T("")],
+        [sg.T("Time step (ps)", size=(28,1), justification='right'), sg.I(key='time_step', default_text='100', size=(10,1))],
         [sg.T("Random seed", size=(28,1), justification='right', tooltip=tt.seed),      sg.I(key='seed',    default_text='', size=(10,1))],
         [sg.T("Monte Carlo Runs", size=(28,1), justification='right'), sg.I(key='mc-runs', default_text="0", size=(10,1))],
         [sg.T("")],

@@ -16,7 +16,7 @@ def optimal_laser_power(params, mode=None):
         np.random.seed(int(params['seed']))
     hit_counts = []
 
-    time_step = 100e-12
+    time_step = float(params['time_step'])*1e-12
     en = np.sqrt(2*pm.PI)*fl(params['laser_sigma'])*1e-9*fl(params['pixel_power'])
     n_imps = 1
     limit = .5e-6
