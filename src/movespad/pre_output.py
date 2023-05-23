@@ -8,7 +8,7 @@ def fl(x: str):
     return float(x)
 
 
-def optimal_laser_power(params):
+def optimal_laser_power(params, mode=None):
     """Simulate SPAD action to evaluate
     optimal laser power (6 hits out of 9)"""
 
@@ -19,12 +19,15 @@ def optimal_laser_power(params):
     time_step = 100e-12
     en = np.sqrt(2*pm.PI)*fl(params['laser_sigma'])*1e-9*fl(params['pixel_power'])
     n_imps = 1
-    limit = 0.5e-6
+    limit = .5e-6
+
+    print(f"Pulse energy: {en}")
+    n_las = []
 
     for _ in trange(250, leave=False):
         laser_spec = laser.full_laser_spectrum(
             init_offset= 1e-8,
-            time_step= 100e-12,
+            time_step= time_step,
             n_imps=n_imps,
             tau = fl(params['tau']),
             rho_tgt= fl(params['rho_tgt']),
@@ -46,12 +49,13 @@ def optimal_laser_power(params):
         times = np.linspace(start, stop, n_steps)
 
         n_laser, t_laser = laser.get_n_photons(times, laser_spec)
+        n_las.append(sum(n_laser))
         t_bkg = np.array([])
         pix = pixel.Pixel(size=3)
         pix.create_and_split(t_laser, t_bkg, pdp=fl(params['pdp']))
 
         hit_counts.append(sum([len(spd.timestamps)>0 for spd in pix.timestamps])) 
-
+    print(f"Average n photons: {np.mean(n_las)}")
     return np.mean(hit_counts)
 
 
@@ -61,7 +65,7 @@ def get_pre_output(params):
     Compute average hit count, flash power per pixel,
     matrix dimension to cover all FOV, N bit for TDC
     """
- 
+    print("")
     f_lens = 0.1 * fl(params['range_max']) * fl(params['spad_size']) * int(params['pixel_size']) / fl(params['res_x'])
     d_lens = f_lens / float(params['f_number'])
 
@@ -103,6 +107,7 @@ def get_pre_output_flash_fix_mn(params):
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
 
     params['pixel_power'] = flash_power_per_pixel
+    # print(f"Flash (fix matrix) - Power per pixel {params['pixel_power']:.2f}")
     hit_count = optimal_laser_power(params)
 
     pre_outs = {
@@ -142,6 +147,7 @@ def get_pre_output_flash_fix_fov(params):
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
 
     params['pixel_power'] = flash_power_per_pixel
+    # print(f"Flash (fix FOV) - Power per pixel {params['pixel_power']:.2f}")
     hit_count = optimal_laser_power(params)
 
     pre_outs = {
@@ -180,13 +186,14 @@ def get_pre_output_scan_fix_k(params):
     k_pix_per_shot = int(np.floor(n_sigma_recharge * pb / (np.sqrt(2*np.pi) * power_per_pixel)))
     n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
     pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
-    print(f"[FIX p]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
+    #print(f"[FIX p]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
     clock = fl(params['clock'])*1e6
 
     time_per_frame = 1 /(n_matrices *  fps) - (n_x * n_y * n_bit_tdc * n_bit_hist) / (clock*n_pads)
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
 
     params['pixel_power'] = power_per_pixel
+    # print(f"Scanning (fix k) - Power per pixel {params['pixel_power']:.2f}")
     hit_count = optimal_laser_power(params)
 
     pre_outs = {
@@ -228,13 +235,13 @@ def get_pre_output_scan_fix_p(params):
     n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
     pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
 
-    print(f"[FIX k]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
+    # print(f"[FIX k]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
 
     clock = fl(params['clock'])*1e6
 
     time_per_frame = 1 /(n_matrices *  fps) - (n_x * n_y * n_bit_tdc * n_bit_hist) / (clock*n_pads)
     imps_per_frame = int(np.floor(time_per_frame/pulse_distance))
-
+    # print(f"Flash (fix power per pixel) - Power per pixel {params['pixel_power']}")
     hit_count = optimal_laser_power(params)
 
     pre_outs = {
