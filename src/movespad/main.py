@@ -169,7 +169,7 @@ def execute_main(
         ax.stairs(counts, bins)
         secax = ax.secondary_xaxis(location='top', functions=(lambda x: 0.5*x*pm.C , lambda x :  2*x/pm.C))
         secax.set_label("Distance [m]")
-    
+
         plt.title(f"TOF histogram {n_imp} pulses")
         plt.show()
 

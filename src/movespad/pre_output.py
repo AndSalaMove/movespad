@@ -19,14 +19,15 @@ def optimal_laser_power(params, mode=None):
     time_step = float(params['time_step'])*1e-12
     en = np.sqrt(2*pm.PI)*fl(params['laser_sigma'])*1e-9*fl(params['pixel_power'])
     n_imps = 1
-    limit = .5e-6
+    sigma = fl(params['laser_sigma'])*1e-9
+    limit = 12*sigma
 
     print(f"Pulse energy: {en}")
     n_las = []
 
-    for _ in trange(250, leave=False):
+    for q in trange(250, leave=False):
         laser_spec = laser.full_laser_spectrum(
-            init_offset= 1e-8,
+            init_offset= limit/2,
             time_step= time_step,
             n_imps=n_imps,
             tau = fl(params['tau']),
@@ -49,6 +50,7 @@ def optimal_laser_power(params, mode=None):
         times = np.linspace(start, stop, n_steps)
 
         n_laser, t_laser = laser.get_n_photons(times, laser_spec)
+
         n_las.append(sum(n_laser))
         t_bkg = np.array([])
         pix = pixel.Pixel(size=3)
@@ -98,6 +100,7 @@ def get_pre_output_flash_fix_mn(params):
 
     fov_x, fov_y = np.rad2deg(2*np.arctan(n_x * res_x / range_max)), np.rad2deg(2*np.arctan(n_y * res_y / range_max))
     fov_x, fov_y = np.round(fov_x, 2), np.round(fov_y, 2)
+    
     pulse_distance = max(2*range_max*1.05 / pm.C, n_sigma_recharge*laser_sigma)
     power_per_pixel = pb / (n_x * n_y)
     flash_power_per_pixel = power_per_pixel * pulse_distance / (np.sqrt(2*pm.PI)*laser_sigma)
@@ -136,7 +139,6 @@ def get_pre_output_flash_fix_fov(params):
 
     n_x = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_x)) / res_x)))
     n_y = int(np.ceil((range_max * np.tan(np.deg2rad(0.5*fov_y)) / res_y)))
-
 
     pulse_distance = max(2*range_max*1.05 / pm.C, n_sigma_recharge*laser_sigma)
     power_per_pixel = pb / (n_x * n_y)
