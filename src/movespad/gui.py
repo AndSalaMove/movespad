@@ -141,6 +141,7 @@ def gui():
                 [sg.Text("SCANNING with fixed power per pixel", justification='center', size=(40,1),  tooltip=tt.scan1, font=("Helvetica", 14, "bold"))],
                 [sg.Text("")],
                 [sg.Text(f"Power per pixel:", justification='right', size=(20,1)), sg.Text(f"{pp['power_per_pixel']:.2f}")],
+                [sg.Text(f"Power budget:", justification='right', size=(20,1)), sg.Text(f"{pp['pb']:.2f}")],
                 [sg.Text(f"N pixel per shot:", justification='right', size=(20,1)), sg.Text(f"{pp['n_pix_per_shot']:.2f}")],
                 [sg.Text(f"N shots to cover matrix:", justification='right', size=(20,1)), sg.Text(f"{pp['n_shots']}")],
                 [sg.Text(f"N matrices to cover FOV:", justification='right', size=(20,1)), sg.Text(f"{pp['n_matrices']}")],
@@ -159,6 +160,7 @@ def gui():
 
                 [sg.Text("")],
                 [sg.Text(f"Power per pixel:", justification='right', size=(20,1)), sg.Text(f"{kp['power_per_pixel']:.2f}")],
+                [sg.Text(f"Power budget:", justification='right', size=(20,1)), sg.Text(f"{kp['pb']:.2f}")],
                 [sg.Text(f"N pixel per shot:", justification='right', size=(20,1)), sg.Text(f"{kp['n_pix_per_shot']:.2f}")],
                 [sg.Text(f"N shots to cover matrix:", justification='right', size=(20,1)), sg.Text(f"{kp['n_shots']}")],
                 [sg.Text(f"N matrices to cover FOV:", justification='right', size=(20,1)), sg.Text(f"{kp['n_matrices']}")],

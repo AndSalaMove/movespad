@@ -202,6 +202,7 @@ def get_pre_output_scan_fix_k(params):
 
         'n_pix_per_shot': k_pix_per_shot,
         'power_per_pixel' : power_per_pixel,
+        'pb' : pb,
         'n_matrices': n_matrices,
         'n_shots': n_shots,
         'tot_peak': k_pix_per_shot * power_per_pixel,
@@ -237,6 +238,7 @@ def get_pre_output_scan_fix_p(params):
     n_shots = int(np.ceil(n_x * n_y / k_pix_per_shot))
     pulse_distance = max(2*float(params['range_max'])*1.05 / pm.C, n_shots*n_sigma_recharge*laser_sigma)
 
+    pb = np.sqrt(2*np.pi) * k_pix_per_shot * power_per_pixel / n_sigma_recharge
     # print(f"[FIX k]Pulse distance: {pulse_distance:.2E} s - {0.5 * pm.C * pulse_distance :.3f} m")
 
     clock = fl(params['clock'])*1e6
@@ -249,6 +251,7 @@ def get_pre_output_scan_fix_p(params):
     pre_outs = {
 
         'n_pix_per_shot': k_pix_per_shot,
+        'pb': pb,
         'power_per_pixel' : power_per_pixel,
         'n_matrices': n_matrices,
         'n_shots': n_shots,
