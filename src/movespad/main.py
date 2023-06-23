@@ -50,7 +50,7 @@ def execute_main(
     if not mc:
         print(f"Lens parameters: {f_lens:.5f} / {d_lens:.5f}")
 
-    if seed!='':
+    if seed!='' and mc==False:
         np.random.seed(seed=int(seed))
         random.seed(int(seed))
 
@@ -104,7 +104,10 @@ def execute_main(
                         z, pulse_distance, las_sigma, pulse_energy, len(times))
 
     diff = len(las_spec) - len(times)
-    times = np.append(times, np.zeros(shape=(diff,)))
+    if diff>0:
+        times = np.append(times, np.zeros(shape=(diff,)))
+    elif diff<0:
+        las_spec = np.append(las_spec, np.zeros(shape=(-diff,)))
 
     if not mc:
         print("Extracting number of laser photons...")
@@ -140,14 +143,21 @@ def execute_main(
     survived = pix.coincidence(thr=thr, window=3*las_sigma)
 
     survived = pixel.Pixel.tdc_jitter(tdc_j, survived).tolist()
-
+    # print(f"Photons survived: {survived}")
     if not mc:
         print(f"{len(survived)} events found")
         print("Plotting results:\n**********\n\n")
 
-    if len(survived)==0:
+    if len(survived)==0 and not mc:
         plt.show()
         return {'none': None}
+    
+    if len(survived)==0:
+        print("This Monte Carlo run did not produce results.")
+        centroids = {
+            'status' : 'empty'
+        }
+        return centroids
 
     tot_n = 2**(n_bit_tdc)
     count_limit = 2**(n_bit_hist)

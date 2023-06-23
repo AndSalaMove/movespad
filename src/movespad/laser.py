@@ -130,6 +130,7 @@ def get_centroids(bins, counts, data, real_value):
     centr['10perc'] = 0.5 * pm.C * histo_avg(nz_bins[:chunk_10], nz_counts[:chunk_10]) - real_value
 
     mu, sigma = stats.norm.fit(data)
+    sigma+=0.0001
     best_fit_line = stats.norm.pdf(bins, mu, sigma)
     
     centr['gaus'] = 0.5* pm.C *mu - real_value

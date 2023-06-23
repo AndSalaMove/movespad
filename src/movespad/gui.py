@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 from movespad import main, pre_output, tooltips as tt
 from movespad import __version__ as VERSION
 
@@ -186,29 +187,35 @@ def gui():
             window2.Close()
 
         elif event=='Submit':
-            centroids = main.execute_main(params=values, mc=False)
-            if 'none' in centroids.keys():
+            try:
+                centroids = main.execute_main(params=values, mc=False)
+                if 'none' in centroids.keys():
+                    pass
+
+                else:
+                    layout_3 = [
+                        [sg.T("Highest bin", size=(20,1), justification='right'),         sg.InputText(f"{centroids['max']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['max']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                        [sg.T("Histogram average", size=(20,1), justification='right'),   sg.InputText(f"{centroids['mean']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['mean']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                        [sg.T("Top 10% average", size=(20,1), justification='right'),     sg.InputText(f"{centroids['10perc']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['10perc']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                        [sg.T("Gaussian fit", size=(20,1), justification='right'),        sg.InputText(f"{centroids['gaus']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['gaus']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
+                        [sg.Exit(auto_size_button=True)]
+                    ]
+
+                    window3 = sg.Window(title='Simulation results', layout=layout_3, resizable=True, grab_anywhere=True)
+                    ev_3, val_3 = window3.read()
+
+                    if ev_3=='Exit' or ev_3 is None:
+                        window3.close()
+
+            except:
                 pass
-
-            else:
-                layout_3 = [
-                    [sg.T("Highest bin", size=(20,1), justification='right'),         sg.InputText(f"{centroids['max']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['max']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.T("Histogram average", size=(20,1), justification='right'),   sg.InputText(f"{centroids['mean']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['mean']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.T("Top 10% average", size=(20,1), justification='right'),     sg.InputText(f"{centroids['10perc']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['10perc']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.T("Gaussian fit", size=(20,1), justification='right'),        sg.InputText(f"{centroids['gaus']:.2f} m", size=(16,1), use_readonly_for_disable=True), sg.InputText(f"{centroids['gaus']+centroids['z']:.2f} m", size=(16,1), use_readonly_for_disable=True)],
-                    [sg.Exit(auto_size_button=True)]
-                ]
-
-                window3 = sg.Window(title='Simulation results', layout=layout_3, resizable=True, grab_anywhere=True)
-                ev_3, val_3 = window3.read()
-
-                if ev_3=='Exit' or ev_3 is None:
-                    window3.close()
-
 
         elif event=='Monte Carlo':
             print(f"* Monte Carlo @{values['mc-runs']} *")
 
+            if int(values['mc-runs'])<=0:
+                print("Invalid number of MC runs.")
+                continue
             n_runs = int(values['mc-runs'])
             results = {
                 'max': [],
@@ -217,42 +224,57 @@ def gui():
                 'gaus': []
             }
 
+            if values['seed']!='':
+                np.random.seed(seed=int(values['seed']))
+                random.seed(int(values['seed']))
 
-            for run in range(n_runs):
-                print(f"*********** RUN {1+run}/{n_runs} ****************")
-                centroids = main.execute_main(params=values, mc=True)
-                for key in centroids.keys():
-                    if key=='z':
-                        pass
-                    else:
+            try:
+                for run in range(n_runs):
+                    print(f"*********** RUN {1+run}/{n_runs} ****************")
+                    centroids = main.execute_main(params=values, mc=True)
+                    if centroids == {'status' : 'empty'}:
+                        continue
+                    for key in centroids.keys():
+                        if key=='z':
+                            pass
+                        else:
+                            results[key].append(centroids[key])
 
-                        results[key].append(centroids[key])
 
-            errors = {key: np.mean(results[key]) for key in results.keys()}
-            plt.subplot(2,2,1)
-            plt.title(f"Highest bin ({errors['max']:.3f})", fontsize=10)
-            plt.hist(results['max'], density=True, bins=30)
-            plt.axvline(x = 0, ymin=0, ymax=1,
-                        linestyle='dashed', color='crimson')
+                if len(results['mean'])==0:
+                    print("NO MC RUNS SUCCESSFUL.")
+                    continue
 
-            plt.subplot(2,2,2)
-            plt.title(f"Histogram average ({errors['mean']:.3f})",  fontsize=10)
-            plt.hist(results['mean'], density=True, bins=30)
-            plt.axvline(x = 0, ymin=0, ymax=1,
-                        linestyle='dashed', color='crimson')
+                errors = {key: np.mean(results[key]) for key in results.keys()}
+                
+                plt.subplot(2,2,1)
+                plt.title(f"Highest bin ({errors['max']:.3f})", fontsize=10)
+                plt.hist(results['max'], density=True, bins=30, label=f"{len(results['mean'])} runs")
+                plt.axvline(x = 0, ymin=0, ymax=1,
+                            linestyle='dashed', color='crimson')
+                plt.legend()
 
-            plt.subplot(2,2,3)
-            plt.title(f"Top 10% average ({errors['10perc']:.3f})",  fontsize=10)
-            plt.hist(results['10perc'], density=True, bins=30)
-            plt.axvline(x = 0, ymin=0, ymax=1,
-                        linestyle='dashed', color='crimson')
+                plt.subplot(2,2,2)
+                plt.title(f"Histogram average ({errors['mean']:.3f})",  fontsize=10)
+                plt.hist(results['mean'], density=True, bins=30)
+                plt.axvline(x = 0, ymin=0, ymax=1,
+                            linestyle='dashed', color='crimson')
 
-            plt.subplot(2,2,4)
-            plt.title(f"Gaussian fit mean ({errors['gaus']:.3f})",  fontsize=10)
-            plt.hist(results['gaus'], density=True, bins=30)
-            plt.axvline(x = 0, ymin=0, ymax=1,
-                        linestyle='dashed', color='crimson')
+                plt.subplot(2,2,3)
+                plt.title(f"Top 10% average ({errors['10perc']:.3f})",  fontsize=10)
+                plt.hist(results['10perc'], density=True, bins=30)
+                plt.axvline(x = 0, ymin=0, ymax=1,
+                            linestyle='dashed', color='crimson')
 
-            plt.show()
+                plt.subplot(2,2,4)
+                plt.title(f"Gaussian fit mean ({errors['gaus']:.3f})",  fontsize=10)
+                plt.hist(results['gaus'], density=True, bins=30)
+                plt.axvline(x = 0, ymin=0, ymax=1,
+                            linestyle='dashed', color='crimson')
+
+                plt.show()
+
+            except:
+                pass
 
     window.close()
