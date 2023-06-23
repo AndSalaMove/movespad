@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
 import numpy as np
+from time import time
 import random
 from movespad import main, pre_output, tooltips as tt
 from movespad import __version__ as VERSION
@@ -91,11 +92,10 @@ def gui():
     ]
 
     layout = [
- 
+
         [sg.T(f"MOVE-X LIDAR SIMULATION v{VERSION}", size=(120,1), justification='center', font=("Helvetica", 14, "bold"))],
         [sg.T("")],
         [sg.Column(left, pad=(0, 0)), sg.Column(center, pad=(0, 0)), sg.Column(right, pad=(0, 0))],
-
 
     ]
 
@@ -187,6 +187,7 @@ def gui():
             window2.Close()
 
         elif event=='Submit':
+            print("\n\n")
             try:
                 centroids = main.execute_main(params=values, mc=False)
                 if 'none' in centroids.keys():
@@ -211,7 +212,7 @@ def gui():
                 pass
 
         elif event=='Monte Carlo':
-            print(f"* Monte Carlo @{values['mc-runs']} *")
+            print(f"\n\n\n* Monte Carlo @{values['mc-runs']} *")
 
             if int(values['mc-runs'])<=0:
                 print("Invalid number of MC runs.")
@@ -230,6 +231,7 @@ def gui():
 
             try:
                 for run in range(n_runs):
+                    start = time()
                     print(f"*********** RUN {1+run}/{n_runs} ****************")
                     centroids = main.execute_main(params=values, mc=True)
                     if centroids == {'status' : 'empty'}:
@@ -239,7 +241,8 @@ def gui():
                             pass
                         else:
                             results[key].append(centroids[key])
-
+                    stop = time()
+                    print(f"Time taken: {stop-start :.3f}s")
 
                 if len(results['mean'])==0:
                     print("NO MC RUNS SUCCESSFUL.")
@@ -252,25 +255,28 @@ def gui():
                 plt.hist(results['max'], density=True, bins=30, label=f"{len(results['mean'])} runs")
                 plt.axvline(x = 0, ymin=0, ymax=1,
                             linestyle='dashed', color='crimson')
-                plt.legend()
+                plt.legend(loc='upper left')
 
                 plt.subplot(2,2,2)
                 plt.title(f"Histogram average ({errors['mean']:.3f})",  fontsize=10)
-                plt.hist(results['mean'], density=True, bins=30)
+                plt.hist(results['mean'], density=True, bins=30, label=f"{len(results['mean'])} runs")
                 plt.axvline(x = 0, ymin=0, ymax=1,
                             linestyle='dashed', color='crimson')
+                plt.legend(loc='upper left')
 
                 plt.subplot(2,2,3)
                 plt.title(f"Top 10% average ({errors['10perc']:.3f})",  fontsize=10)
-                plt.hist(results['10perc'], density=True, bins=30)
+                plt.hist(results['10perc'], density=True, bins=30, label=f"{len(results['mean'])} runs")
                 plt.axvline(x = 0, ymin=0, ymax=1,
                             linestyle='dashed', color='crimson')
+                plt.legend(loc='upper left')
 
                 plt.subplot(2,2,4)
                 plt.title(f"Gaussian fit mean ({errors['gaus']:.3f})",  fontsize=10)
-                plt.hist(results['gaus'], density=True, bins=30)
+                plt.hist(results['gaus'], density=True, bins=30, label=f"{len(results['mean'])} runs")
                 plt.axvline(x = 0, ymin=0, ymax=1,
                             linestyle='dashed', color='crimson')
+                plt.legend(loc='upper left')
 
                 plt.show()
 

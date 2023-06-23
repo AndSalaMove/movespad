@@ -13,6 +13,8 @@ def execute_main(
 ):
     if mc:
         plt.clf()
+    else:
+        t_start = time()
 
     las_sigma, seed = float(params['laser_sigma'])*10**(-9), params['seed']
     pixel_size, pdp = int(params['pixel_size']), float(params['pdp'])
@@ -149,6 +151,8 @@ def execute_main(
         print("Plotting results:\n**********\n\n")
 
     if len(survived)==0 and not mc:
+        t_stop = time()
+        print(f"Time taken: {t_stop - t_start:.3f}s")
         plt.show()
         return {'none': None}
     
@@ -181,6 +185,8 @@ def execute_main(
         secax.set_label("Distance [m]")
 
         plt.title(f"TOF histogram {n_imp} pulses")
+        t_stop = time()
+        print(f"Time taken: {t_stop- t_start:.3f}s")
         plt.show()
 
     print(f"Max: {centroids['max']:.2f} - Mean: {centroids['mean']:.2f} - Top10%: {centroids['10perc']:.2f} - Gaus: {centroids['gaus']:.2f}")
