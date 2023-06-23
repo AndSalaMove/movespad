@@ -3,13 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from time import time
 import random
-from movespad import main, pre_output, tooltips as tt
+from movespad import main, pre_output, tooltips as tt, intro
 from movespad import __version__ as VERSION
 
 plt.style.use('Solarize_Light2')
 
 
 def gui():
+
+    print(intro.intro())
 
     sg.set_options(font=("Helvetica", 12))
     sg.theme("DarkBlue15")
@@ -105,7 +107,7 @@ def gui():
         event, values = window.read()
 
         if event is None or event=='Cancel':
-            print("Goodbye!")
+            print(intro.goodbye())
             break
         elif event=='Pre-Output':
             outs = pre_output.get_pre_output(params=values)
